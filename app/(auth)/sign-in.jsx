@@ -11,8 +11,8 @@ const Signin = () => {
     password:''
   })
 
-  const submit = (e) => {
-    console.log(e)
+  const submit = async () => {
+    console.log("DONE")
   }
 
   const [isSubmitting, setIsSubmitting] = useState(false)

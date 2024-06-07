@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "313528056148",
+    "firebase_url": "https://ripped-ai-ccba8-default-rtdb.firebaseio.com",
+    "project_id": "ripped-ai-ccba8",
+    "storage_bucket": "ripped-ai-ccba8.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:313528056148:android:0fa0f2e84edf230e23f0c1",
+        "android_client_info": {
+          "package_name": "com.shy.rippedai"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "313528056148-s0n3018g14vnc2e58rnk7stq8homfrtq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyClZpaF6p3SPAnO9IwXS6QeMxdHTXCzucA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "313528056148-s0n3018g14vnc2e58rnk7stq8homfrtq.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "313528056148-bjteak04nr37pm334qukgj273r2sv5jq.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.shy.rippedai"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

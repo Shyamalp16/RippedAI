@@ -8,7 +8,7 @@ const FormField = ({title, value, placeholder, handleChangeText, otherStyles, ..
     <View className={`space-y-2 ${otherStyles}`}>
       <Text className="text-base text-black-100 font-pmedium"> {title}</Text>
       <View className="w-[40vh] h-16 px-3 bg-#FFFFFF-100 border-2 border-gray-100 rounded-2xl focus:border-secondary items-center flex-row">
-        <TextInput className="flex-1 text-black font-psemibold text-base" value={value} placeholder={placeholder} placeholderTextColor={"#7b7b8b"} onChange={handleChangeText} secureTextEntry={title === 'Password' && !showPassword} />
+        <TextInput className="flex-1 text-black font-psemibold text-base" value={value} placeholder={placeholder} placeholderTextColor={"#7b7b8b"} onChangeText={handleChangeText} secureTextEntry={title === 'Password' && !showPassword} />
         {title === 'Password' && (
             <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                 <Image className="w-6 h-6" resizeMode='contain' source={!showPassword ? icons.eye : icons.eyeHide} />
