@@ -4,8 +4,11 @@ import { Redirect, router } from 'expo-router'
 import {images} from "../constants"
 import CustomButton from '../components/CustomButton';
 import 'react-native-url-polyfill/auto'
+import { useGlobalContext } from "../context/GlobalProvider";
 
 export default function App() {
+  const { isLoading, isLoggedin } = useGlobalContext();
+  if (!isLoading && isLoggedin) return <Redirect href="/home" />;
   return (
     <View className="flex-1 items-center justify-center bg-white">
         <ImageBackground source={images.homepage} resizeMode="cover" className="w-[110%] h-[110%] flex-1 items-center justify-center">
