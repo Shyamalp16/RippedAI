@@ -26,14 +26,14 @@ const Signup = () => {
           const user = userCredential.user
           // setUser(user)
           // setIsLoggedIn(true)
-          router.replace('/details')
+          router.replace('/onboarding')
         })
       }catch(error){
-        // let e = error.toString().split('/')[1]
-        // e = e.substring(0, e.length - 2)
-        // e = e.replaceAll("-", " ")
+        let e = error.toString().split('/')[1]
+        e = e.substring(0, e.length - 2)
+        e = e.replaceAll("-", " ")
         console.log(error)
-        // Alert.alert('Error', e.charAt(0).toUpperCase() + e.slice(1))
+        Alert.alert('Error', e.charAt(0).toUpperCase() + e.slice(1))
       }finally{
         setIsSubmitting(false)
       }

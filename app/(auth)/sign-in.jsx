@@ -26,7 +26,7 @@ const Signin = () => {
           // setIsLoading(false)
           // setUser(user)
           // setIsLoggedIn(true)
-          router.replace('/details')
+          router.replace('/onboarding')
         })
       }catch(error){
         let e = error.toString().split('/')[1]
