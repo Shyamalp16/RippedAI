@@ -23,9 +23,10 @@ const Signin = () => {
         const res = await signInWithEmailAndPassword(auth, form.email, form.password)
         .then((userCredential) => {
           const user = userCredential.user
-          // setUser(userCredential.user)
+          // setIsLoading(false)
+          // setUser(user)
           // setIsLoggedIn(true)
-          router.replace('/home')
+          router.replace('/details')
         })
       }catch(error){
         let e = error.toString().split('/')[1]

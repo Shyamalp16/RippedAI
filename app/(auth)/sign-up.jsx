@@ -26,7 +26,7 @@ const Signup = () => {
           const user = userCredential.user
           // setUser(user)
           // setIsLoggedIn(true)
-          router.replace('/home')
+          router.replace('/details')
         })
       }catch(error){
         // let e = error.toString().split('/')[1]

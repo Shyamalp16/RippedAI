@@ -12,7 +12,8 @@ const GlobalProvider = ({ children }) => {
 
     const auth = getAuth()
     useEffect(() => {
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(firebase_auth, (user) => {
+            // console.log(user)
             setIsLoading(true)
             if(user){
                 setIsLoggedIn(true)
@@ -28,9 +29,9 @@ const GlobalProvider = ({ children }) => {
     }, []);
     return (
         <GlobalContext.Provider value={{
-            isLoggedIn, setIsLoggedIn, user, setUser, isLoading
+            isLoggedIn, setIsLoggedIn, user, setUser, isLoading, setIsLoading
         }}>
-            {children}
+            {!isLoading && children}
         </GlobalContext.Provider>
     )
 }
