@@ -28,7 +28,7 @@ const Onboarding = () => {
             <View className="w-full h-[65%] mt-[25%] justify-center flex-1 items-center bg-#ded8d7">
                 <Text className="text-lg font-psemibold text-gray-500 "> STEP 1/5 </Text>
                 <Text className="text-2xl text-center font-psemibold mx-[5%] mt-[5%]"> Your Account Was Created, time to customize it! </Text>
-                <FormField title=" " value={fullName} placeholder={"Full Name"} handleChangeText={(e) => setFullName(e)} otherStyles="mt-5"/>
+                <FormField title=" " value={fullName} placeholder={"Full Name"} handleChangeText={(e) => setFullName(e.trim())} otherStyles="mt-5"/>
                 <CustomButton title="Continue" handlePress={validate} containerStyles="w-[75%] mt-7 bg-black" textStyles="text-white"/>
                 <Text className="text-center w-[80%] text-gray-400 mt-[5%]"> Be Careful: Once Submitted, No Information Can Be Changed till Onboarding is over! </Text>
             </View>

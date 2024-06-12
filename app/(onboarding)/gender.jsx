@@ -19,7 +19,7 @@ const Onboarding = () => {
 
     const skip = () => {
       setSelectedGender("Didnt Mention")
-      router.push("/goals")
+      router.push("/physique")
     }
   return (
     <SafeAreaView className="bg-#e6e5e3 h-full">

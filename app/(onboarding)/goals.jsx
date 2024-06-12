@@ -10,10 +10,14 @@ import CheckBox from '../../components/CheckBox.jsx'
 
 
 const goals = () => {
-    const [gls, setGoals] = useState([]);
-    const [other, setOther] = useState("")
+    const [gls, setGoals] = useState([null]);
+    const [other, setOther] = useState('')
     const validate = () => {
-
+        if(gls.length == 1 && !other){
+            Alert.alert("Please Select Atleast One Option or Enter Your Needs Manualy!")
+        }else{
+            router.push("/finishedOnb")
+        }
     }
   return (
     <SafeAreaView className="bg-#e6e5e3 h-full">
@@ -36,7 +40,7 @@ const goals = () => {
                 ]}
                 checkedValues={gls}
                 onChange={setGoals} />
-                <FormField title="" value={other} placeholder="Any Other Goals?" handleChangeText={(e) => setOther(e)} otherStyles={"mt-[-15%] pt-0"} />
+                <FormField title="" value={other} placeholder="Any Other Goals? (Optional)" handleChangeText={(e) => setOther(e.trim())} otherStyles={"mt-[-15%] pt-0"} />
                 <CustomButton title="Continue" handlePress={validate} containerStyles="w-[75%] mt-7 bg-black" textStyles="text-white"/>
             </View>
         </View>

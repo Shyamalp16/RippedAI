@@ -11,6 +11,7 @@ const OnboardingLayout = () => {
         <Stack.Screen name="gender" options={{ headerShown: false}} />
         <Stack.Screen name="physique" options={{ headerShown: false}} />
         <Stack.Screen name="goals" options={{ headerShown: false}} />
+        <Stack.Screen name="finishedOnb" options={{ headerShown: false}} />
       </Stack>
       <StatusBar backgroundColor="#161122" style="dark" />
     </>
