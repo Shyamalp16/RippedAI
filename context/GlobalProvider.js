@@ -11,6 +11,7 @@ const GlobalProvider = ({ children }) => {
     const [isLoading, setIsLoading] = useState(true);
     
     const auth = getAuth()
+
     useEffect(() => {
         onAuthStateChanged(firebase_auth, (user) => {
             // console.log(user)

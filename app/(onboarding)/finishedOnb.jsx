@@ -5,9 +5,26 @@ import CustomButton from '../../components/CustomButton'
 import { router } from 'expo-router'
 import { OnboardingContext } from '../../context/OnboardingContext'
 import {images} from "../../constants"
+import {collection, addDoc, setDoc, doc} from 'firebase/firestore'
+import { getAuth, onAuthStateChanged } from 'firebase/auth'
+import { db } from '../../lib/FirebaseConfig' 
+
+
+
 
 const finishedOnb = () => {
   const {state, setState} = useContext(OnboardingContext)
+  const [userID, setUserID] = useState(null)
+
+  const ath = getAuth();
+  
+  useEffect(() => {
+    onAuthStateChanged(ath, (user) => {
+      if(user){
+        setUserID(user.uid)
+      }
+    })
+  }, [])
 
   // CHANGE STATE
   const validate = () => {
@@ -18,9 +35,44 @@ const finishedOnb = () => {
 
   // WHEN STATE CHANGES, PUSH TO HOME
   useEffect(() => {
-    if(state.onbDone){
-      router.push('/home')
+    console.log(userID)
+    async function submit(){
+      if(state.onbDone && userID){
+        // try{
+        //   const docRef = await addDoc(collection(db, "users", userID), {
+        //     uID: userID,
+        //     Name: state.fullName,
+        //     gender: state.gender,
+        //     height: state.height,
+        //     weight: state.weight,
+        //     age: state.age,
+        //     goals: state.goals,
+        //     other: state.other,
+        //     onbDone: state.onbDone
+        //   });
+        //   console.log("Document Written! ID:", docRef.id)
+        //   // router.push('/home')
+        // }catch(e){
+        //   console.error("Error Submitting, Please Try Again Later", e)
+        // }
+        try{
+          await setDoc(doc(db, "users", userID), {
+            uID: userID,
+            Name: state.fullName,
+            gender: state.gender,
+            height: state.height,
+            weight: state.weight,
+            age: state.age,
+            goals: state.goals,
+            other: state.other,
+            onbDone: state.onbDone
+          })
+        }catch(e){
+          console.error("Error Submitting, please try again", e)
+        }
+      }
     }
+    submit()
   }, [state.onbDone])
 
   return (
