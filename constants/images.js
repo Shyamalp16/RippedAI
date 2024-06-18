@@ -8,5 +8,6 @@ import logoSmall from "../assets/images/logo-small.png";
 import empty from "../assets/images/empty.png";
 import male from "../assets/images/male.png";
 import female from "../assets/images/female.png";
+import check from "../assets/images/check.png";
 
-export default { profile, homepage, thumbnail, cards, path, logo, logoSmall, empty, male, female };
+export default { profile, homepage, thumbnail, cards, path, logo, logoSmall, empty, male, female, check };

@@ -1,24 +1,28 @@
 import { View, Text, ScrollView, Alert, TouchableOpacity, Image } from 'react-native'
-import React, { useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import FormField from '../../components/FormField'
 import CustomButton from '../../components/CustomButton'
 import { router } from 'expo-router'
 import icons from '../../constants/icons.js'
 import CheckBox from '../../components/CheckBox.jsx'
+import { OnboardingContext } from '../../context/OnboardingContext.js'
 
 
 
 const goals = () => {
-    const [gls, setGoals] = useState([null]);
-    const [other, setOther] = useState('')
+    const {state, setState} = useContext(OnboardingContext)
+    
     const validate = () => {
-        if(gls.length == 1 && !other){
-            Alert.alert("Please Select Atleast One Option or Enter Your Needs Manualy!")
-        }else{
-            router.push("/finishedOnb")
-        }
+      console.log(state.goals)
+      console.log(state.goals.length)
+      if(state.goals.length == 0 && !state.other){
+          Alert.alert("Please Select Atleast One Option or Enter Your Needs Manualy!")
+      }else{
+          router.push("/finishedOnb")
+      }
     }
+
   return (
     <SafeAreaView className="bg-#e6e5e3 h-full">
       <ScrollView>
@@ -38,9 +42,9 @@ const goals = () => {
                     {label: "Improve Sleep Quality", value:"Improve Sleep Quality"},
                     {label: "Reduce Stress", value:"Reduce Stress"},
                 ]}
-                checkedValues={gls}
-                onChange={setGoals} />
-                <FormField title="" value={other} placeholder="Any Other Goals? (Optional)" handleChangeText={(e) => setOther(e.trim())} otherStyles={"mt-[-15%] pt-0"} />
+                checkedValues={state.goals}
+                onChange={(newGoals) => setState({...state, goals:newGoals})} />
+                <FormField title="" value={state.other} placeholder="Any Other Goals? (Optional)" handleChangeText={(e) => setState({...state, other:e.trim()})} otherStyles={"mt-[-15%] pt-0"} />
                 <CustomButton title="Continue" handlePress={validate} containerStyles="w-[75%] mt-7 bg-black" textStyles="text-white"/>
             </View>
         </View>

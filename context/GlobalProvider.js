@@ -9,7 +9,7 @@ const GlobalProvider = ({ children }) => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [user, setUser] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
-
+    
     const auth = getAuth()
     useEffect(() => {
         onAuthStateChanged(firebase_auth, (user) => {

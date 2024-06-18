@@ -1,13 +1,16 @@
 import { View, Text, ScrollView, Alert, TouchableOpacity, Image, Pressable } from 'react-native'
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import FormField from '../../components/FormField'
 import CustomButton from '../../components/CustomButton'
 import { router } from 'expo-router'
 import icons from '../../constants/icons.js'
 import images from '../../constants/images.js'
+import { OnboardingContext } from '../../context/OnboardingContext.js'
 
 const Onboarding = () => {
+    const {state, setState} = useContext(OnboardingContext)
+
     const [selectedMenu , setSelectedMenu] = useState("Height")
     const [height, setHeight] = useState(null)
     const [weight, setWeight] = useState(null)
@@ -15,13 +18,13 @@ const Onboarding = () => {
     const [bmi, setBMI] = useState(null)
 
     const validate = () => {
-      if(!height || !weight || !age){
+      if(!state.height || !state.weight || !state.age){
         Alert.alert("Please Fill All The Fields!")
-      }else if(height >= 250 || height < 100){
+      }else if(state.height >= 250 || state.height < 100){
         Alert.alert("Invalid Height!")
-      }else if(age <= 14){
+      }else if(state.age <= 14){
         Alert.alert("Too young")
-      }else if(age >= 100){
+      }else if(state.age >= 100){
         Alert.alert("Invalid Age!")
       }else{
         router.push("/goals")
@@ -59,9 +62,9 @@ const Onboarding = () => {
                 </View>
                 <View> 
                 </View>
-                {selectedMenu === "Height" && <FormField title="" value={height} placeholder={"Enter Your Height (in CM)"} keyboardType='numeric' handleChangeText={(e) => setHeight(e)} otherStyles=""/> }
-                {selectedMenu === "Weight" && <FormField title="" value={weight} placeholder={"Enter Your Weight (in LBS)"} keyboardType='numeric' handleChangeText={(e) => setWeight(e)} otherStyles=""/> }
-                {selectedMenu === "Age" && <FormField title="" value={age} placeholder={"Enter Your Age"} keyboardType='numeric' handleChangeText={(e) => setAge(e)} otherStyles=""/> }
+                {selectedMenu === "Height" && <FormField title="" value={height} placeholder={"Enter Your Height (in CM)"} keyboardType='numeric' handleChangeText={(e) => setState({...state, height:e})} otherStyles=""/> }
+                {selectedMenu === "Weight" && <FormField title="" value={weight} placeholder={"Enter Your Weight (in LBS)"} keyboardType='numeric' handleChangeText={(e) => setState({...state, weight:e})} otherStyles=""/> }
+                {selectedMenu === "Age" && <FormField title="" value={age} placeholder={"Enter Your Age"} keyboardType='numeric' handleChangeText={(e) => setState({...state, age:e})} otherStyles=""/> }
                 {/* {age && weight && height && <Text className="mt-[5%] text-gray-400"> BMI:{bmi} </Text> } */}
                 {/* ADD THE BMI FUNCTIONANLITY ONCE DONE WITH ONBOARDING PART */}
                 <CustomButton  title="Continue" handlePress={validate} containerStyles="w-[75%] mt-7 bg-black" textStyles="text-white"/>

@@ -8,7 +8,6 @@ const TabsLayout = () => {
     <>
       <Stack>
         <Stack.Screen name="home" options={{ headerShown: false}} />
-        {/* <Stack.Screen name="sign-up" options={{ headerShown: false}} /> */}
       </Stack>
       <StatusBar backgroundColor="#161122" style="dark" />
     </>

@@ -11,7 +11,8 @@ const home = () => {
         signOut(auth).then(() => {
             setUser(null)
             setIsLoggedIn(false)
-            Alert.alert("Success!", "Signout Successful.")
+            // Alert.alert("Success!", "Signout Successful.")
+            console.log("Success!", "Signout Successful.")
         }).catch((error) => {
             Alert.alert("Error!", error)
         })
