@@ -38,23 +38,6 @@ const finishedOnb = () => {
     console.log(userID)
     async function submit(){
       if(state.onbDone && userID){
-        // try{
-        //   const docRef = await addDoc(collection(db, "users", userID), {
-        //     uID: userID,
-        //     Name: state.fullName,
-        //     gender: state.gender,
-        //     height: state.height,
-        //     weight: state.weight,
-        //     age: state.age,
-        //     goals: state.goals,
-        //     other: state.other,
-        //     onbDone: state.onbDone
-        //   });
-        //   console.log("Document Written! ID:", docRef.id)
-        //   // router.push('/home')
-        // }catch(e){
-        //   console.error("Error Submitting, Please Try Again Later", e)
-        // }
         try{
           await setDoc(doc(db, "users", userID), {
             uID: userID,
@@ -67,6 +50,8 @@ const finishedOnb = () => {
             other: state.other,
             onbDone: state.onbDone
           })
+          console.log("Document Written! ID:", userID)
+          router.push('/home')
         }catch(e){
           console.error("Error Submitting, please try again", e)
         }

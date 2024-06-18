@@ -44,7 +44,7 @@ const goals = () => {
                 ]}
                 checkedValues={state.goals}
                 onChange={(newGoals) => setState({...state, goals:newGoals})} />
-                <FormField title="" value={state.other} placeholder="Any Other Goals? (Optional)" handleChangeText={(e) => setState({...state, other:e.trim()})} otherStyles={"mt-[-15%] pt-0"} />
+                <FormField title="" value={state.other} placeholder="Any Other Goals? (Optional)" handleChangeText={(e) => setState({...state, other:e})} otherStyles={"mt-[-15%] pt-0"} />
                 <CustomButton title="Continue" handlePress={validate} containerStyles="w-[75%] mt-7 bg-black" textStyles="text-white"/>
             </View>
         </View>
