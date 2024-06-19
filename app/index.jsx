@@ -42,7 +42,7 @@ export default function App() {
   
 
   return (
-    <View className="flex-1 items-center justify-center bg-white">
+    <View className="flex-1 items-center justify-center bg-[#ffffff]">
         <ImageBackground source={images.homepage} resizeMode="cover" className="w-[110%] h-[110%] flex-1 items-center justify-center">
             <Text className="text-3xl font-psemibold text-white">RippedAi</Text>
             <Text className="text-xl font-plight mt-1 text-white">Sore today, snack forever!</Text>

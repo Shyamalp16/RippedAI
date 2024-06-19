@@ -16,6 +16,7 @@ import play from "../assets/icons/play.png";
 import checkbox from "../assets/icons/checkbox.png";
 import unchecked from "../assets/icons/unchecked.png";
 import clipboard from "../assets/icons/clipboard.png";
+import settings from "../assets/icons/settings.png";
 
 export default {
   play,
@@ -35,5 +36,6 @@ export default {
   eye,
   checkbox,
   unchecked,
-  clipboard
+  clipboard,
+  settings
 };
