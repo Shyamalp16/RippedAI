@@ -26,7 +26,6 @@ export const AppProvider = ({children}) => {
 export const setItem = async (key, value) => {
     try{
         await AsyncStorage.setItem(key, value);
-        console.log("Value Stored!!")
     }catch(error){
         console.log("Error Stroing Value", error)
     }
@@ -36,7 +35,6 @@ export const setItem = async (key, value) => {
 export const getItem = async (key) => {
     try{
         const value = await AsyncStorage.getItem(key);
-        console.log(value)
         return value;
     }catch(error){
         console.log("Error Getting value", error)

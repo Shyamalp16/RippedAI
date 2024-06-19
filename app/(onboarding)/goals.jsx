@@ -14,8 +14,6 @@ const goals = () => {
     const {state, setState} = useContext(OnboardingContext)
     
     const validate = () => {
-      console.log(state.goals)
-      console.log(state.goals.length)
       if(state.goals.length == 0 && !state.other){
           Alert.alert("Please Select Atleast One Option or Enter Your Needs Manualy!")
       }else{

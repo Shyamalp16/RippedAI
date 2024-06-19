@@ -36,7 +36,6 @@ const finishedOnb = () => {
 
   // WHEN STATE CHANGES, PUSH TO HOME
   useEffect(() => {
-    console.log(userID)
     async function submit(){
       if(state.onbDone && userID){
         try{

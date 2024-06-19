@@ -20,20 +20,20 @@ export default function App() {
   const checkIfAlreadyOnboarded = async () => {
     let onboarded = await getItem('onboarded');
     if(onboarded == 1){
-      console.log("checkIfAlreadyOnboarded is true")
+      // if alreadyOnboarded is true, we set showOnboarding false cause we dont need it
       setOnboarding(false)
-      console.log("setOnboarding is false so it should not show onboarding")
     }else{
+
       setOnboarding(true)
     }
   }
 
   if (!isLoading && isLoggedIn){
     if(!onboarding){
-      console.log("is not loading, is logged in AND onboarding is false so we should show home")
+      // If it is not loading, it is already logged in AND setOnboarding is false we show home (Meaning usere logged in and finished onboarding)
       return <Redirect href="/home" />
     }else{
-      console.log("is not loading and is logged in so we show onboarding")
+      // if it is not loading, already logged in AND showOnboarding is true we show onboarding (Meaning user just logged in)
       return <Redirect href="/onboarding" />
     }
     

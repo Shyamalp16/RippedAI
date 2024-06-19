@@ -11,11 +11,10 @@ const Onboarding = () => {
 
     const validate = () => {
         if(state.fullName){
-          console.log(state.fullName)
-            router.push("/gender")
+          router.push("/gender")
         }
         else{
-            Alert.alert("Please Enter Your Name!")
+          Alert.alert("Please Enter Your Name!")
         }
     }
   return (
