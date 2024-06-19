@@ -13,33 +13,8 @@ export const AppProvider = ({children}) => {
         age: null,
         goals: [],
         other: '',
-        onbDone: false
+        onbDone: null
     })
-
-    useEffect(() => {
-        const loadOnboardingState = async() => {
-            try{
-                const storedState = await AsyncStorage.getItem('onboardingState')
-                if(storedState){
-                    setState({...state, onbDone: JSON.parse(storedState)})
-                }
-            }catch(error){
-                console.error("Failed To load", error)
-            }
-        }
-        loadOnboardingState();
-    }, [])
-
-    useEffect(() => {
-        const saveOnboardingState = async() => {
-            try{
-                await AsyncStorage.setItem('onboardingState', JSON.stringify(state.onbDone))
-            }catch(error){
-                console.error("Failed to save onboarding state", error)
-            }
-        }
-        saveOnboardingState()
-    },[state])
 
     return(
         <OnboardingContext.Provider value = {{state, setState}}>
@@ -47,5 +22,34 @@ export const AppProvider = ({children}) => {
         </OnboardingContext.Provider>
     )
 };
+
+export const setItem = async (key, value) => {
+    try{
+        await AsyncStorage.setItem(key, value);
+        console.log("Value Stored!!")
+    }catch(error){
+        console.log("Error Stroing Value", error)
+    }
+}
+
+
+export const getItem = async (key) => {
+    try{
+        const value = await AsyncStorage.getItem(key);
+        console.log(value)
+        return value;
+    }catch(error){
+        console.log("Error Getting value", error)
+    }
+}
+
+export const removeItem = async (key) => {
+    try{
+        await AsyncStorage.removeItem(key);
+    }catch(error){
+        console.log("Error Removing value", error)
+    }
+}
+
 
 

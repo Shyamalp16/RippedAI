@@ -3,9 +3,9 @@ import React, { useContext, useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import CustomButton from '../../components/CustomButton'
 import { router } from 'expo-router'
-import { OnboardingContext } from '../../context/OnboardingContext'
+import { OnboardingContext, setItem } from '../../context/OnboardingContext'
 import {images} from "../../constants"
-import {collection, addDoc, setDoc, doc} from 'firebase/firestore'
+import {setDoc, doc} from 'firebase/firestore'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { db } from '../../lib/FirebaseConfig' 
 
@@ -31,6 +31,7 @@ const finishedOnb = () => {
     setState((state) => ({
       ...state, onbDone: true
     }))
+    setItem('onboarded', '1');
   }
 
   // WHEN STATE CHANGES, PUSH TO HOME
@@ -48,9 +49,7 @@ const finishedOnb = () => {
             age: state.age,
             goals: state.goals,
             other: state.other,
-            onbDone: state.onbDone
           })
-          console.log("Document Written! ID:", userID)
           router.push('/home')
         }catch(e){
           console.error("Error Submitting, please try again", e)

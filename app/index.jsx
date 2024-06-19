@@ -5,21 +5,42 @@ import {images} from "../constants"
 import CustomButton from '../components/CustomButton';
 import 'react-native-url-polyfill/auto'
 import { useGlobalContext } from "../context/GlobalProvider";
-import { OnboardingContext } from '../context/OnboardingContext'
-import { useContext } from 'react';
+import { OnboardingContext, getItem } from '../context/OnboardingContext'
+import { useContext, useEffect, useState } from 'react';
 
 export default function App() {
   const { isLoading, isLoggedIn } = useGlobalContext();
   const {state, setState} = useContext(OnboardingContext)
+  const [onboarding, setOnboarding] = useState(null)
+
+  useEffect(() => {
+    checkIfAlreadyOnboarded();
+  }, [])
+
+  const checkIfAlreadyOnboarded = async () => {
+    let onboarded = await getItem('onboarded');
+    if(onboarded == 1){
+      console.log("checkIfAlreadyOnboarded is true")
+      setOnboarding(false)
+      console.log("setOnboarding is false so it should not show onboarding")
+    }else{
+      setOnboarding(true)
+    }
+  }
 
   if (!isLoading && isLoggedIn){
-    console.log(state.onbDone)
-    if(state.onbDone){
+    if(!onboarding){
+      console.log("is not loading, is logged in AND onboarding is false so we should show home")
       return <Redirect href="/home" />
     }else{
+      console.log("is not loading and is logged in so we show onboarding")
       return <Redirect href="/onboarding" />
     }
-  } 
+    
+  }
+
+  
+
   return (
     <View className="flex-1 items-center justify-center bg-white">
         <ImageBackground source={images.homepage} resizeMode="cover" className="w-[110%] h-[110%] flex-1 items-center justify-center">

@@ -2,6 +2,8 @@ import { View, Text, Alert } from 'react-native'
 import React from 'react'
 import { getAuth, signOut } from "firebase/auth";
 import CustomButton from '../../components/CustomButton';
+import { router } from 'expo-router';
+import { removeItem } from '../../context/OnboardingContext';
 
 
 
@@ -9,12 +11,15 @@ const home = () => {
     const auth = getAuth();
     const logOut = () => {
         signOut(auth).then(() => {
+            removeItem('onboarded')
             setUser(null)
             setIsLoggedIn(false)
             // Alert.alert("Success!", "Signout Successful.")
             console.log("Success!", "Signout Successful.")
         }).catch((error) => {
             Alert.alert("Error!", error)
+        }).finally(() => {
+          router.push('/login')
         })
     }
   return (
