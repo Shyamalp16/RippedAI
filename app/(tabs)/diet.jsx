@@ -1,34 +1,57 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList } from 'react-native';
 import { Redirect, router, useRouter } from 'expo-router'
+import { useDietContext } from '../../context/DietContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
 const Diet = () => {
+  const { macros: contextMacros, setMacros: setContextMacros, consumedFoods: contextConsumedFoods, setConsumedFoods: setContextConsumedFoods } = useDietContext();
   const router = useRouter();
-  const navigation = useNavigation();
+
   const [macros, setMacros] = useState({
-    calories: { current: 2000, target: 2000 },
-    protein: { current: 60, target: 150 },
-    carbs: { current: 120, target: 250 },
-    fat: { current: 40, target: 65 },
-    iron: { current: 8, target: 18 },
+    calories: { current: 0, target: 2000 },
+    protein: { current: 150, target: 150 },
+    carbs: { current: 250, target: 250 },
+    fat: { current: 65, target: 65 },
+    iron: { current: 18, target: 18 },
   });
-  const [consumedFoods, setConsumedFoods] = useState([
-    { id: '1', name: 'Grilled Chicken Breast', calories: 165 },
-    { id: '2', name: 'Greek Yogurt', calories: 100 },
-    { id: '3', name: 'Spinach Salad', calories: 78 },
-    { id: '4', name: 'Banana', calories: 105 },
-    { id: '5', name: 'Salmon Fillet', calories: 206 },
-  ]);
+
+  // const [consumedFoods, setConsumedFoods] = useState([
+  //   { id: '1', name: 'Grilled Chicken Breast', calories: 165 },
+  //   { id: '2', name: 'Greek Yogurt', calories: 100 },
+  //   { id: '3', name: 'Spinach Salad', calories: 78 },
+  //   { id: '4', name: 'Banana', calories: 105 },
+  //   { id: '5', name: 'Salmon Fillet', calories: 206 },
+  // ]);
+
+  const [consumedFoods, setConsumedFoods] = useState([]);
+
+
+  useEffect(() => {
+    // Update local state with context values when they change
+    if (contextMacros) {
+      setMacros(prevMacros => ({
+        calories: { current: contextMacros.calories?.current || 0, target: prevMacros.calories.target },
+        protein: { current: contextMacros.protein?.current || 0, target: prevMacros.protein.target },
+        carbs: { current: contextMacros.carbs?.current || 0, target: prevMacros.carbs.target },
+        fat: { current: contextMacros.fat?.current || 0, target: prevMacros.fat.target },
+        iron: { current: contextMacros.iron?.current || 0, target: prevMacros.iron.target },
+      }));
+    }
+    if (contextConsumedFoods) {
+      setConsumedFoods(contextConsumedFoods);
+    }
+  }, [contextMacros, contextConsumedFoods]);
 
   const renderMacroBar = (macro, value) => (
     <View style={styles.macroBar} key={macro}>
       <Text style={styles.macroText}>{macro}</Text>
       <View style={styles.progressContainer}>
-        <View style={[styles.progressBar, { width: `${(value.current / value.target) * 100}%` }]} />
+        <View style={[styles.progressBar, { width: `${((value?.current || 0) / (value?.target || 1)) * 100}%` }]} />
       </View>
-      <Text style={styles.macroText}>{`${value.current}/${value.target}`}</Text>
+      {value?.current >= value?.target && <Text style={styles.macroText}> Finished </Text>}
+      {value?.current < value?.target && <Text style={styles.macroText}>{`${value?.current || 0}/${value?.target || 0}`}</Text>}
     </View>
   );
 
@@ -46,38 +69,35 @@ const Diet = () => {
         
         <View style={styles.calorieCircle}>
           <View style={styles.circularProgress}>
-            <View style={[styles.circularFill, { height: `${(macros.calories.current / macros.calories.target) * 100}%` }]} />
+            <View style={[styles.circularFill, { height: `${((macros.calories?.current || 0) / (macros.calories?.target || 1)) * 100}%` }]} />
             <View style={styles.circularContent}>
               <Text style={styles.calorieText}>Calories</Text>
-              <Text style={styles.calorieValue}>{`${macros.calories.current}/${macros.calories.target}`}</Text>
+              <Text style={styles.calorieValue}>{`${macros.calories?.current || 0}/${macros.calories?.target || 0}`}</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.macrosContainer}>
-          {Object.entries(macros).slice(1).map(([macro, value]) => renderMacroBar(macro, value))}
+          {Object.entries(macros).map(([macro, value]) => renderMacroBar(macro, value))}
         </View>
 
         <TouchableOpacity 
           style={styles.consumedFoodsContainer}
-            onPress={() => router.push({
-              pathname: "/consumedFoods",
-              params: { consumedFoods: JSON.stringify(consumedFoods) }
-            })}
-          >
+          onPress={() => router.push({pathname: "/consumedFoods"})}
+        >
           <Text style={styles.sectionTitle}>Consumed Foods</Text>
-            <FlatList
-              data={consumedFoods.slice(0, 3)}
-              renderItem={renderFoodItem}
-              keyExtractor={item => item.id}
-              style={styles.foodList}
-            />
+          <FlatList
+            data={consumedFoods.slice(0, 3)}
+            renderItem={renderFoodItem}
+            keyExtractor={item => item.id}
+            style={styles.foodList}
+          />
           <Text style={styles.viewAllText}>View all...</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.navigate('AddFood', { setMacros, setConsumedFoods })}
+          onPress={() => router.push('/addFood')}
         >
           <Text style={styles.buttonText}>Add Food</Text>
         </TouchableOpacity>

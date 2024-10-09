@@ -3,6 +3,7 @@ import { SplashScreen, Stack } from 'expo-router'
 import { useFonts } from 'expo-font'
 import GlobalProvider from "../context/GlobalProvider";
 import { AppProvider } from '../context/OnboardingContext';
+import { DietProvider } from '../context/DietContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -30,15 +31,17 @@ const RootLayout = () => {
 
   return (
     <GlobalProvider>
-      <AppProvider>
-        <Stack>
-          <Stack.Screen name="index" options={{headerShown: false}} />
-          <Stack.Screen name="(auth)" options={{headerShown: false}} />
-          <Stack.Screen name="(onboarding)" options={{headerShown: false}} />
-          <Stack.Screen name="(tabs)" options={{headerShown: false}} />
-          <Stack.Screen name="(comps)" options={{headerShown: false}} />
-        </Stack>
-      </AppProvider>
+      <DietProvider>
+        <AppProvider>
+          <Stack>
+            <Stack.Screen name="index" options={{headerShown: false}} />
+            <Stack.Screen name="(auth)" options={{headerShown: false}} />
+            <Stack.Screen name="(onboarding)" options={{headerShown: false}} />
+            <Stack.Screen name="(tabs)" options={{headerShown: false}} />
+            <Stack.Screen name="(comps)" options={{headerShown: false}} />
+          </Stack>
+        </AppProvider>
+      </DietProvider>
     </GlobalProvider>
   )
 }
