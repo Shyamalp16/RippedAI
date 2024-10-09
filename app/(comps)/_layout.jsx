@@ -8,6 +8,7 @@ const CompLayout = () => {
     <>
       <Stack>
         <Stack.Screen name="consumedFoods" options={{ headerShown: false}} />
+        <Stack.Screen name="addFoods" options={{ headerShown: false}} />
       </Stack>
       <StatusBar backgroundColor="#161122" style="dark" />
     </>
