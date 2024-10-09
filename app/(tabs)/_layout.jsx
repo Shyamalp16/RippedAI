@@ -36,6 +36,16 @@ const TabsLayout = () => {
           }}
         />
 
+        <Tabs.Screen name="diet" 
+          options={{
+            title: 'Diet',
+            headerShown: false,
+            tabBarIcon: ({ color, focused}) => (
+              <TabIcon icon={icons.clipboard} color={color} name="Diet" focused={focused} />
+            )
+          }}
+        />
+
         <Tabs.Screen name="profile" 
           options={{
             title: 'Profile',
