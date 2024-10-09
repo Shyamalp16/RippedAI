@@ -9,7 +9,7 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@react-native-async-storage/async-storage": "^1.23.1",
+    "@react-native-async-storage/async-storage": "^1.24.0",
     "@react-native-community/checkbox": "^0.5.17",
     "@rneui/themed": "^4.0.0-rc.8",
     "@supabase/supabase-js": "^2.43.4",
@@ -28,6 +28,7 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-native": "0.74.1",
+    "react-native-circular-progress": "^1.4.0",
     "react-native-circular-progress-bar": "^0.1.1",
     "react-native-dotenv": "^3.4.11",
     "react-native-get-random-values": "^1.11.0",
