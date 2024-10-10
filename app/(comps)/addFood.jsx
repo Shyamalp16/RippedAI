@@ -2,16 +2,33 @@ import React from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
 import { useDietContext } from '../../context/DietContext';
 import { useRouter } from 'expo-router';
+import { realtimeDB } from '../../lib/FirebaseConfig';
+import { ref, set, push } from 'firebase/database';
 
 const AddFood = () => {
   const { macros, setMacros, consumedFoods, setConsumedFoods } = useDietContext();
   const router = useRouter();
 
-  const handleAddFood = () => {
+  const addFoodToDatabase = async (food) => {
+    try {
+      const foodsRef = ref(realtimeDB, 'consumedFoods');
+      const newFoodRef = push(foodsRef);
+      await set(newFoodRef, food);
+      console.log('Food added to database successfully');
+    } catch (error) {
+      console.error('Error adding food to database:', error);
+    }
+  };
+
+  const handleAddFood = async () => {
     const newFood = {
       id: Date.now().toString(),
       name: 'Test Food Item',
       calories: 100,
+      protein: 5,
+      carbs: 10,
+      fat: 3,
+      iron: 1
     };
 
     setConsumedFoods(prevFoods => [...prevFoods, newFood]);
@@ -38,6 +55,8 @@ const AddFood = () => {
         current: (prevMacros.iron?.current || 0) + 1 
       }
     }));
+
+    await addFoodToDatabase(newFood);
 
     router.back();
   };
