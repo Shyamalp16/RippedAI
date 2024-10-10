@@ -30,13 +30,16 @@ const AddFood = () => {
       { id: '2', name: 'Banana', calories: 105, protein: 1.3, carbs: 27, fat: 0.4, iron: 0.3 },
       { id: '3', name: 'Chicken Breast', calories: 165, protein: 31, carbs: 0, fat: 3.6, iron: 1 },
     ];
-    setSearchResults(mockResults.filter(food => food.name.toLowerCase().includes(query.toLowerCase())));
+    const filteredResults = mockResults.filter(food => food.name.toLowerCase().includes(query.toLowerCase()));
+    setSearchResults(filteredResults);
   };
 
   const handleAddFood = async (food) => {
+    const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const newFood = {
       id: Date.now().toString(),
-      ...food
+      ...food,
+      time: currentTime
     };
 
     setConsumedFoods(prevFoods => [...prevFoods, newFood]);
@@ -85,12 +88,16 @@ const AddFood = () => {
         value={searchQuery}
         onChangeText={handleSearch}
       />
-      <FlatList
-        data={searchResults}
-        renderItem={renderFoodItem}
-        keyExtractor={item => item.id}
-        style={styles.resultsList}
-      />
+      {searchResults.length > 0 ? (
+        <FlatList
+          data={searchResults}
+          renderItem={renderFoodItem}
+          keyExtractor={item => item.id}
+          style={styles.resultsList}
+        />
+      ) : (
+        <Text style={styles.noResults}>No Food Item Found!</Text>
+      )}
     </View>
   );
 };
@@ -130,6 +137,12 @@ const styles = StyleSheet.create({
   },
   foodCalories: {
     fontSize: 14,
+    color: '#666666',
+  },
+  noResults: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 20,
     color: '#666666',
   },
 });
