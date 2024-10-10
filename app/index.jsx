@@ -7,15 +7,43 @@ import 'react-native-url-polyfill/auto'
 import { useGlobalContext } from "../context/GlobalProvider";
 import { OnboardingContext, getItem } from '../context/OnboardingContext'
 import { useContext, useEffect, useState } from 'react';
+import { authorize, apiCall } from '../lib/FastSecret';
 
 export default function App() {
   const { isLoading, isLoggedIn } = useGlobalContext();
   const {state, setState} = useContext(OnboardingContext)
   const [onboarding, setOnboarding] = useState(null)
+  const [isAuthorized, setIsAuthorized] = useState(false)
+  const [expiresIn, setExpiresIn] = useState(null)
+
+  const checkAuth = async () => {
+    try {
+      const authData = await authorize();
+      setIsAuthorized(true);
+      setExpiresIn(authData.expires_in);
+      console.log('Authorization successful');
+      const foodData = await apiCall('/foods/search/v1?search_expression=chicken&format=json&page_number=0&max_results=10', 'POST', { search_expression: 'chicken', format: 'json', page_number: 0, max_results: 10 });
+      console.log(foodData);
+    } catch (error) {
+      console.error('Authorization failed:', error);
+    }
+  }
 
   useEffect(() => {
+    if (!isAuthorized) {
+      checkAuth();
+    }
     checkIfAlreadyOnboarded();
   }, [])
+
+  useEffect(() => {
+    if (expiresIn) {
+      const timer = setTimeout(() => {
+        checkAuth();
+      }, (expiresIn - 300) * 1000); // Refresh 5 minutes before expiration
+      return () => clearTimeout(timer);
+    }
+  }, [expiresIn]);
 
   const checkIfAlreadyOnboarded = async () => {
     let onboarded = await getItem('onboarded');
@@ -23,7 +51,6 @@ export default function App() {
       // if alreadyOnboarded is true, we set showOnboarding false cause we dont need it
       setOnboarding(false)
     }else{
-
       setOnboarding(true)
     }
   }
@@ -36,10 +63,7 @@ export default function App() {
       // if it is not loading, already logged in AND showOnboarding is true we show onboarding (Meaning user just logged in)
       return <Redirect href="/onboarding" />
     }
-    
   }
-
-  
 
   return (
     <View className="flex-1 items-center justify-center bg-[#ffffff]">

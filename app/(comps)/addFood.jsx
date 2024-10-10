@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useDietContext } from '../../context/DietContext';
 import { useRouter } from 'expo-router';
 import { realtimeDB } from '../../lib/FirebaseConfig';
 import { ref, set, push } from 'firebase/database';
+import { apiCall } from '../../lib/FastSecret';
 
 const AddFood = () => {
   const { macros, setMacros, consumedFoods, setConsumedFoods } = useDietContext();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const addFoodToDatabase = async (food) => {
     try {
@@ -22,16 +24,36 @@ const AddFood = () => {
     }
   };
 
-  const handleSearch = (query) => {
+  const handleSearch = async (query) => {
     setSearchQuery(query);
-    // Mock search results - replace this with actual API call or database query
-    const mockResults = [
-      { id: '1', name: 'Apple', calories: 95, protein: 0.5, carbs: 25, fat: 0.3, iron: 0.2 },
-      { id: '2', name: 'Banana', calories: 105, protein: 1.3, carbs: 27, fat: 0.4, iron: 0.3 },
-      { id: '3', name: 'Chicken Breast', calories: 165, protein: 31, carbs: 0, fat: 3.6, iron: 1 },
-    ];
-    const filteredResults = mockResults.filter(food => food.name.toLowerCase().includes(query.toLowerCase()));
-    setSearchResults(filteredResults);
+    if (query.length > 2) {
+      setIsLoading(true);
+      try {
+        const endpoint = `/foods/search/v1?search_expression=${query}&format=json&page_number=0&max_results=10`;
+        const response = await apiCall(endpoint, 'GET', { search_expression: query, max_results: 50 });
+        if (response.foods && response.foods.food) {
+          const formattedResults = response.foods.food.map(food => ({
+            id: food.food_id,
+            name: food.food_name,
+            calories: parseFloat(food.food_description.split('|')[0].trim().split(' ')[0]),
+            protein: parseFloat(food.food_description.split('|')[2].trim().split(' ')[0]),
+            carbs: parseFloat(food.food_description.split('|')[1].trim().split(' ')[0]),
+            fat: parseFloat(food.food_description.split('|')[3].trim().split(' ')[0]),
+            iron: 0 // API doesn't provide iron content, so we're setting it to 0
+          }));
+          setSearchResults(formattedResults);
+        } else {
+          setSearchResults([]);
+        }
+      } catch (error) {
+        console.error('Error fetching search results:', error);
+        setSearchResults([]);
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      setSearchResults([]);
+    }
   };
 
   const handleAddFood = async (food) => {
@@ -88,7 +110,9 @@ const AddFood = () => {
         value={searchQuery}
         onChangeText={handleSearch}
       />
-      {searchResults.length > 0 ? (
+      {isLoading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : searchResults.length > 0 ? (
         <FlatList
           data={searchResults}
           renderItem={renderFoodItem}
