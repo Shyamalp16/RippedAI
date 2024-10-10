@@ -1,64 +1,94 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList } from 'react-native';
-import { Redirect, router, useRouter } from 'expo-router'
-import { useDietContext } from '../../context/DietContext';
+import { router, useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { ref, onValue, query, limitToLast, orderByChild } from 'firebase/database';
+import { realtimeDB } from '../../lib/FirebaseConfig';
 
 const Diet = () => {
-  const { macros: contextMacros, setMacros: setContextMacros, consumedFoods: contextConsumedFoods, setConsumedFoods: setContextConsumedFoods } = useDietContext();
   const router = useRouter();
 
   const [macros, setMacros] = useState({
     calories: { current: 0, target: 2000 },
-    protein: { current: 150, target: 150 },
-    carbs: { current: 250, target: 250 },
-    fat: { current: 65, target: 65 },
-    iron: { current: 18, target: 18 },
+    protein: { current: 0, target: 150 },
+    carbs: { current: 0, target: 250 },
+    fat: { current: 0, target: 65 },
+    iron: { current: 0, target: 18 },
   });
-
-  // const [consumedFoods, setConsumedFoods] = useState([
-  //   { id: '1', name: 'Grilled Chicken Breast', calories: 165 },
-  //   { id: '2', name: 'Greek Yogurt', calories: 100 },
-  //   { id: '3', name: 'Spinach Salad', calories: 78 },
-  //   { id: '4', name: 'Banana', calories: 105 },
-  //   { id: '5', name: 'Salmon Fillet', calories: 206 },
-  // ]);
 
   const [consumedFoods, setConsumedFoods] = useState([]);
 
-
   useEffect(() => {
-    // Update local state with context values when they change
-    if (contextMacros) {
-      setMacros(prevMacros => ({
-        calories: { current: contextMacros.calories?.current || 0, target: prevMacros.calories.target },
-        protein: { current: contextMacros.protein?.current || 0, target: prevMacros.protein.target },
-        carbs: { current: contextMacros.carbs?.current || 0, target: prevMacros.carbs.target },
-        fat: { current: contextMacros.fat?.current || 0, target: prevMacros.fat.target },
-        iron: { current: contextMacros.iron?.current || 0, target: prevMacros.iron.target },
-      }));
-    }
-    if (contextConsumedFoods) {
-      setConsumedFoods(contextConsumedFoods);
-    }
-  }, [contextMacros, contextConsumedFoods]);
+    const macrosRef = ref(realtimeDB, 'macros');
+    const foodsRef = ref(realtimeDB, 'consumedFoods');
+
+    const unsubscribeMacros = onValue(macrosRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setMacros(prevMacros => ({
+          ...prevMacros,
+          ...data,
+        }));
+      }
+    });
+
+    const unsubscribeFoods = onValue(foodsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const foodsArray = Object.entries(data).map(([key, value]) => ({
+          id: key,
+          ...value,
+          timestamp: value.timestamp || Date.now() // Ensure timestamp exists
+        }));
+        
+        // Sort foods by timestamp in descending order (latest first)
+        foodsArray.sort((a, b) => b.timestamp - a.timestamp);
+        
+        // Calculate total macros from all consumed foods
+        const totalMacros = foodsArray.reduce((acc, food) => {
+          acc.calories.current += Math.round(food.calories || 0);
+          acc.protein.current += Math.round(food.protein || 0);
+          acc.carbs.current += Math.round(food.carbs || 0);
+          acc.fat.current += Math.round(food.fat || 0);
+          acc.iron.current += Math.round(food.iron || 0);
+          return acc;
+        }, {
+          calories: { current: 0, target: macros.calories.target },
+          protein: { current: 0, target: macros.protein.target },
+          carbs: { current: 0, target: macros.carbs.target },
+          fat: { current: 0, target: macros.fat.target },
+          iron: { current: 0, target: macros.iron.target },
+        });
+
+        setMacros(totalMacros);
+        
+        // Take only the first 3 items (most recent) for display
+        const recentFoods = foodsArray.slice(0, 3);
+        setConsumedFoods(recentFoods);
+      }
+    });
+
+    return () => {
+      unsubscribeMacros();
+      unsubscribeFoods();
+    };
+  }, []);
 
   const renderMacroBar = (macro, value) => (
     <View style={styles.macroBar} key={macro}>
       <Text style={styles.macroText}>{macro}</Text>
       <View style={styles.progressContainer}>
-        <View style={[styles.progressBar, { width: `${((value?.current || 0) / (value?.target || 1)) * 100}%` }]} />
+        <View style={[styles.progressBar, { width: `${Math.round((value?.current || 0) / (value?.target || 1) * 100)}%` }]} />
       </View>
       {value?.current >= value?.target && <Text style={styles.macroText}> Finished </Text>}
-      {value?.current < value?.target && <Text style={styles.macroText}>{`${value?.current || 0}/${value?.target || 0}`}</Text>}
+      {value?.current < value?.target && <Text style={styles.macroText}>{`${Math.round(value?.current) || 0}/${value?.target || 0}`}</Text>}
     </View>
   );
 
   const renderFoodItem = ({ item }) => (
     <View style={styles.foodItem}>
       <Text style={styles.foodName}>{item.name}</Text>
-      <Text style={styles.foodCalories}>{item.calories} cal</Text>
+      <Text style={styles.foodCalories}>{Math.round(item.calories)} cal</Text>
     </View>
   );
 
@@ -69,10 +99,10 @@ const Diet = () => {
         
         <View style={styles.calorieCircle}>
           <View style={styles.circularProgress}>
-            <View style={[styles.circularFill, { height: `${((macros.calories?.current || 0) / (macros.calories?.target || 1)) * 100}%` }]} />
+            <View style={[styles.circularFill, { height: `${Math.round((macros.calories?.current || 0) / (macros.calories?.target || 1) * 100)}%` }]} />
             <View style={styles.circularContent}>
               <Text style={styles.calorieText}>Calories</Text>
-              <Text style={styles.calorieValue}>{`${macros.calories?.current || 0}/${macros.calories?.target || 0}`}</Text>
+              <Text style={styles.calorieValue}>{`${Math.round(macros.calories?.current) || 0}/${macros.calories?.target || 0}`}</Text>
             </View>
           </View>
         </View>
@@ -85,11 +115,11 @@ const Diet = () => {
           style={styles.consumedFoodsContainer}
           onPress={() => router.push({pathname: "/consumedFoods"})}
         >
-          <Text style={styles.sectionTitle}>Consumed Foods</Text>
+          <Text style={styles.sectionTitle}>Recently Consumed Foods</Text>
           <FlatList
-            data={consumedFoods.slice(0, 3)}
+            data={consumedFoods}
             renderItem={renderFoodItem}
-            keyExtractor={item => item.id}
+            keyExtractor={item => `${item.id}-${item.timestamp}`}
             style={styles.foodList}
           />
           <Text style={styles.viewAllText}>View all...</Text>
