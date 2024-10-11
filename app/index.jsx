@@ -22,16 +22,41 @@ export default function App() {
       setIsAuthorized(true);
       setExpiresIn(authData.expires_in);
       console.log('Authorization successful');
-      const foodData = await apiCall('/foods/search/v1?search_expression=chicken&format=json&page_number=0&max_results=10', 'POST', { search_expression: 'chicken', format: 'json', page_number: 0, max_results: 10 });
-      console.log(foodData);
+      // const foodData = await apiCall(ep, 'foods.search', {
+      //   search_expression: 'chicken',
+      //   format: 'json',
+      // });
+      // console.log("Food data:", foodData);
     } catch (error) {
       console.error('Authorization failed:', error);
+    }
+  }
+
+  const checkApi = async () => {
+    try {
+      const foodData = await apiCall('GET', '/server.api', {
+        method: 'foods.search',
+        search_expression: 'chicken',
+        format: 'json',
+        page_number: 0,
+        max_results: 10
+      });
+      if(foodData.foods && foodData.foods.food){
+        console.log("Complete Food data");
+        foodData.foods.food.forEach((foodItem, index) => {
+          console.log(`Food Item ${index + 1}:`);
+          console.log(JSON.stringify(foodItem, null, 2));
+        })
+      }
+    } catch (error) {
+      console.error('Error fetching food data:', error);
     }
   }
 
   useEffect(() => {
     if (!isAuthorized) {
       checkAuth();
+      checkApi();
     }
     checkIfAlreadyOnboarded();
   }, [])
