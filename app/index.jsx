@@ -37,10 +37,12 @@ export default function App() {
       const foodData = await apiCall('GET', '/server.api', {
         method: 'foods.search',
         search_expression: 'chicken',
-        format: 'json',
-        page_number: 0,
-        max_results: 10
+        // expression: 'chicken',
+        max_results: 5,
+        format: 'json'
+        // page_number: 0,
       });
+      console.log(foodData);
       if(foodData.foods && foodData.foods.food){
         console.log("Complete Food data");
         foodData.foods.food.forEach((foodItem, index) => {
@@ -56,7 +58,7 @@ export default function App() {
   useEffect(() => {
     if (!isAuthorized) {
       checkAuth();
-      checkApi();
+      // checkApi();
     }
     checkIfAlreadyOnboarded();
   }, [])

@@ -24,30 +24,67 @@ const AddFood = () => {
     }
   };
 
+  const fetchSuggestions = async (query) => {
+    try {
+      const foodData = await apiCall('GET', '/server.api', {
+        method: 'foods.autocomplete',
+        expression: query,
+        max_results: 10,
+        format: 'json'
+      });
+      if (foodData.suggestions && foodData.suggestions.suggestion) {
+        const suggestions = foodData.suggestions.suggestion.map((suggestion, index) => ({
+          id: index.toString(),
+          name: suggestion,
+        }));
+        setSearchResults(suggestions);
+      } else {
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.error('Error fetching food suggestions:', error);
+      setSearchResults([]);
+    }
+  }
+
+  const searchApi = async (query) => {
+    try {
+      const foodData = await apiCall('GET', '/server.api', {
+        method: 'foods.search',
+        search_expression: query,
+        max_results: 1,
+        format: 'json'
+      });
+      if (foodData.foods && foodData.foods.food){
+        const foodItem = foodData.foods.food;  // Treating it as an object
+        const { food_name, food_description } = foodItem;
+        const macroMatches = food_description.match(/Calories: (\d+)kcal \| Fat: (\d+\.?\d*)g \| Carbs: (\d+\.?\d*)g \| Protein: (\d+\.?\d*)g/);
+        if (macroMatches) {
+          const [, calories, fat, carbs, protein] = macroMatches.map(Number);
+          return {
+            name: food_name,
+            calories,
+            fat,
+            carbs,
+            protein
+          };
+        }
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching food data:', error);
+      return null;
+    }
+  }
+
   const handleSearch = async (query) => {
     setSearchQuery(query);
-    if (query.length > 2) {
+    if (query.length > 0) {
       setIsLoading(true);
       try {
-        const endpoint = `/foods/search/v1?search_expression=${query}&format=json&page_number=0&max_results=10`;
-        const response = await apiCall(endpoint, 'GET', { search_expression: query, max_results: 50 });
-        if (response.foods && response.foods.food) {
-          const formattedResults = response.foods.food.map(food => ({
-            id: food.food_id,
-            name: food.food_name,
-            calories: parseFloat(food.food_description.split('|')[0].trim().split(' ')[0]),
-            protein: parseFloat(food.food_description.split('|')[2].trim().split(' ')[0]),
-            carbs: parseFloat(food.food_description.split('|')[1].trim().split(' ')[0]),
-            fat: parseFloat(food.food_description.split('|')[3].trim().split(' ')[0]),
-            iron: 0 // API doesn't provide iron content, so we're setting it to 0
-          }));
-          setSearchResults(formattedResults);
-        } else {
-          setSearchResults([]);
-        }
+        await fetchSuggestions(query);
       } catch (error) {
         console.error('Error fetching search results:', error);
-        setSearchResults([]);
       } finally {
         setIsLoading(false);
       }
@@ -57,10 +94,19 @@ const AddFood = () => {
   };
 
   const handleAddFood = async (food) => {
+    setIsLoading(true);
+    const foodDetails = await searchApi(food.name);
+    setIsLoading(false);
+
+    if (!foodDetails) {
+      console.error('Failed to fetch food details');
+      return;
+    }
+
     const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const newFood = {
       id: Date.now().toString(),
-      ...food,
+      ...foodDetails,
       time: currentTime
     };
 
@@ -69,23 +115,23 @@ const AddFood = () => {
     setMacros(prevMacros => ({
       calories: { 
         ...prevMacros.calories, 
-        current: (prevMacros.calories?.current || 0) + food.calories 
+        current: (prevMacros.calories?.current || 0) + foodDetails.calories 
       },
       protein: { 
         ...prevMacros.protein, 
-        current: (prevMacros.protein?.current || 0) + food.protein 
+        current: (prevMacros.protein?.current || 0) + foodDetails.protein 
       },
       carbs: { 
         ...prevMacros.carbs, 
-        current: (prevMacros.carbs?.current || 0) + food.carbs 
+        current: (prevMacros.carbs?.current || 0) + foodDetails.carbs 
       },
       fat: { 
         ...prevMacros.fat, 
-        current: (prevMacros.fat?.current || 0) + food.fat 
+        current: (prevMacros.fat?.current || 0) + foodDetails.fat 
       },
       iron: { 
         ...prevMacros.iron, 
-        current: (prevMacros.iron?.current || 0) + food.iron 
+        current: (prevMacros.iron?.current || 0) + (foodDetails.iron || 0) 
       }
     }));
 
@@ -94,10 +140,9 @@ const AddFood = () => {
     router.back();
   };
 
-  const renderFoodItem = ({ item }) => (
+  const renderSuggestionItem = ({ item }) => (
     <TouchableOpacity style={styles.foodItem} onPress={() => handleAddFood(item)}>
       <Text style={styles.foodName}>{item.name}</Text>
-      <Text style={styles.foodCalories}>{item.calories} calories | {item.protein}g protein | {item.carbs}g carbs | {item.fat}g fat</Text>
     </TouchableOpacity>
   );
 
@@ -115,7 +160,7 @@ const AddFood = () => {
       ) : searchResults.length > 0 ? (
         <FlatList
           data={searchResults}
-          renderItem={renderFoodItem}
+          renderItem={renderSuggestionItem}
           keyExtractor={item => item.id}
           style={styles.resultsList}
         />
@@ -158,10 +203,6 @@ const styles = StyleSheet.create({
   foodName: {
     fontSize: 18,
     fontWeight: '500',
-  },
-  foodCalories: {
-    fontSize: 14,
-    color: '#666666',
   },
   noResults: {
     fontSize: 16,
