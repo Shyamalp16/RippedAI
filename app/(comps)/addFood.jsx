@@ -47,36 +47,6 @@ const AddFood = () => {
     }
   }
 
-  const searchApi = async (query) => {
-    try {
-      const foodData = await apiCall('GET', '/server.api', {
-        method: 'foods.search',
-        search_expression: query,
-        max_results: 1,
-        format: 'json'
-      });
-      if (foodData.foods && foodData.foods.food){
-        const foodItem = foodData.foods.food;  // Treating it as an object
-        const { food_name, food_description } = foodItem;
-        const macroMatches = food_description.match(/Calories: (\d+)kcal \| Fat: (\d+\.?\d*)g \| Carbs: (\d+\.?\d*)g \| Protein: (\d+\.?\d*)g/);
-        if (macroMatches) {
-          const [, calories, fat, carbs, protein] = macroMatches.map(Number);
-          return {
-            name: food_name,
-            calories,
-            fat,
-            carbs,
-            protein
-          };
-        }
-      }
-      return null;
-    } catch (error) {
-      console.error('Error fetching food data:', error);
-      return null;
-    }
-  }
-
   const handleSearch = async (query) => {
     setSearchQuery(query);
     if (query.length > 0) {
@@ -93,55 +63,15 @@ const AddFood = () => {
     }
   };
 
-  const handleAddFood = async (food) => {
-    setIsLoading(true);
-    const foodDetails = await searchApi(food.name);
-    setIsLoading(false);
-
-    if (!foodDetails) {
-      console.error('Failed to fetch food details');
-      return;
-    }
-
-    const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const newFood = {
-      id: Date.now().toString(),
-      ...foodDetails,
-      time: currentTime
-    };
-
-    setConsumedFoods(prevFoods => [...prevFoods, newFood]);
-
-    setMacros(prevMacros => ({
-      calories: { 
-        ...prevMacros.calories, 
-        current: (prevMacros.calories?.current || 0) + foodDetails.calories 
-      },
-      protein: { 
-        ...prevMacros.protein, 
-        current: (prevMacros.protein?.current || 0) + foodDetails.protein 
-      },
-      carbs: { 
-        ...prevMacros.carbs, 
-        current: (prevMacros.carbs?.current || 0) + foodDetails.carbs 
-      },
-      fat: { 
-        ...prevMacros.fat, 
-        current: (prevMacros.fat?.current || 0) + foodDetails.fat 
-      },
-      iron: { 
-        ...prevMacros.iron, 
-        current: (prevMacros.iron?.current || 0) + (foodDetails.iron || 0) 
-      }
-    }));
-
-    await addFoodToDatabase(newFood);
-
-    router.back();
+  const handleFoodSelect = (food) => {
+    router.push({
+      pathname: '/servingFood',
+      params: { foodName: food.name }
+    });
   };
 
   const renderSuggestionItem = ({ item }) => (
-    <TouchableOpacity style={styles.foodItem} onPress={() => handleAddFood(item)}>
+    <TouchableOpacity style={styles.foodItem} onPress={() => handleFoodSelect(item)}>
       <Text style={styles.foodName}>{item.name}</Text>
     </TouchableOpacity>
   );

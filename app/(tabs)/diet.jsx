@@ -78,10 +78,9 @@ const Diet = () => {
     <View style={styles.macroBar} key={macro}>
       <Text style={styles.macroText}>{macro}</Text>
       <View style={styles.progressContainer}>
-        <View style={[styles.progressBar, { width: `${Math.round((value?.current || 0) / (value?.target || 1) * 100)}%` }]} />
+        <View style={[styles.progressBar, { width: `${Math.min(100, Math.round((value?.current || 0) / (value?.target || 1) * 100))}%` }]} />
       </View>
-      {value?.current >= value?.target && <Text style={styles.macroText}> Finished </Text>}
-      {value?.current < value?.target && <Text style={styles.macroText}>{`${Math.round(value?.current) || 0}/${value?.target || 0}`}</Text>}
+      <Text style={styles.macroText}>{`${Math.round(value?.current) || 0}/${value?.target || 0}`}</Text>
     </View>
   );
 
@@ -99,7 +98,7 @@ const Diet = () => {
         
         <View style={styles.calorieCircle}>
           <View style={styles.circularProgress}>
-            <View style={[styles.circularFill, { height: `${Math.round((macros.calories?.current || 0) / (macros.calories?.target || 1) * 100)}%` }]} />
+            <View style={[styles.circularFill, { height: `${Math.min(100, Math.round((macros.calories?.current || 0) / (macros.calories?.target || 1) * 100))}%` }]} />
             <View style={styles.circularContent}>
               <Text style={styles.calorieText}>Calories</Text>
               <Text style={styles.calorieValue}>{`${Math.round(macros.calories?.current) || 0}/${macros.calories?.target || 0}`}</Text>
@@ -108,7 +107,7 @@ const Diet = () => {
         </View>
 
         <View style={styles.macrosContainer}>
-          {Object.entries(macros).map(([macro, value]) => renderMacroBar(macro, value))}
+          {Object.entries(macros).filter(([macro]) => macro !== 'calories').map(([macro, value]) => renderMacroBar(macro, value))}
         </View>
 
         <TouchableOpacity 

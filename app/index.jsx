@@ -35,20 +35,20 @@ export default function App() {
   const checkApi = async () => {
     try {
       const foodData = await apiCall('GET', '/server.api', {
-        method: 'foods.search',
+        method: 'foods.search.v3',
         search_expression: 'chicken',
-        // expression: 'chicken',
-        max_results: 5,
-        format: 'json'
-        // page_number: 0,
+        max_results: 1,
+        include_food_images: true,
+        flag_default_serving: true,
+        format: 'json',
       });
-      console.log(foodData);
-      if(foodData.foods && foodData.foods.food){
-        console.log("Complete Food data");
-        foodData.foods.food.forEach((foodItem, index) => {
+      console.log(JSON.stringify(foodData, null, 2));
+      if (foodData.foods_search && foodData.foods_search.results && foodData.foods_search.results.food) {
+        console.log("Complete Food data:");
+        foodData.foods_search.results.food.forEach((foodItem, index) => {
           console.log(`Food Item ${index + 1}:`);
           console.log(JSON.stringify(foodItem, null, 2));
-        })
+        });
       }
     } catch (error) {
       console.error('Error fetching food data:', error);
