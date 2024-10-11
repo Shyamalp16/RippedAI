@@ -148,7 +148,7 @@ const ServingFood = () => {
       />
 
       <View style={styles.unitsContainer}>
-        <Text style={styles.unitsLabel}>Units of Servings:</Text>
+        <Text style={styles.unitsLabel}>How Many Servings?</Text>
         <View style={styles.unitsControl}>
           <TouchableOpacity onPress={() => handleServingUnitsChange(-1)} style={styles.unitButton}>
             <Text style={styles.unitButtonText}>-</Text>
