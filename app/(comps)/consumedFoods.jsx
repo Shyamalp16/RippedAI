@@ -32,17 +32,45 @@ const ConsumedFoods = () => {
     };
 
     foods.forEach((food, index) => {
-      const [hours, minutes, period] = food.time.match(/(\d+):(\d+)\s(AM|PM)/).slice(1);
-      const hour = parseInt(hours) + (period === 'PM' && hours !== '12' ? 12 : 0);
+      let hours;
+
+      if (food.timestamp) {
+        // Convert timestamp to Date object
+        const date = new Date(food.timestamp);
+        hours = date.getHours();
+        // Add a formatted time string to the food object
+        food.time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      } else if (typeof food.time === 'string') {
+        // If time is already a string, parse it (keeping the existing logic)
+        const timeMatch = food.time.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+        if (!timeMatch) {
+          console.warn(`Unable to parse time for food item ${index}:`, food);
+          meals.Snacks.push({ ...food, uniqueKey: `food-${index}` });
+          return;
+        }
+
+        let [_, hoursStr, minutes, period] = timeMatch;
+        hours = parseInt(hoursStr);
+        
+        if (period) {
+          period = period.toUpperCase();
+          if (period === 'PM' && hours !== 12) hours += 12;
+          if (period === 'AM' && hours === 12) hours = 0;
+        }
+      } else {
+        console.warn(`Invalid time format for food item ${index}:`, food);
+        meals.Snacks.push({ ...food, uniqueKey: `food-${index}` });
+        return;
+      }
 
       // Assign a unique key to each food item
       const foodWithKey = { ...food, uniqueKey: `food-${index}` };
 
-      if (hour >= 5 && hour < 11) {
+      if (hours >= 5 && hours < 11) {
         meals.Breakfast.push(foodWithKey);
-      } else if (hour >= 11 && hour < 15) {
+      } else if (hours >= 11 && hours < 15) {
         meals.Lunch.push(foodWithKey);
-      } else if (hour >= 17 && hour < 21) {
+      } else if (hours >= 17 && hours < 21) {
         meals.Dinner.push(foodWithKey);
       } else {
         meals.Snacks.push(foodWithKey);

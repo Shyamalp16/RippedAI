@@ -86,7 +86,7 @@ const Diet = () => {
 
   const renderFoodItem = ({ item }) => (
     <View style={styles.foodItem}>
-      <Text style={styles.foodName}>{item.name}</Text>
+      <Text style={styles.foodName} numberOfLines={1} ellipsizeMode='tail'>{item.name}</Text>
       <Text style={styles.foodCalories}>{Math.round(item.calories)} cal</Text>
     </View>
   );
@@ -246,6 +246,8 @@ const styles = StyleSheet.create({
   foodName: {
     fontSize: 16,
     color: '#000000',
+    flex: 1,
+    marginRight: 10,
   },
   foodCalories: {
     fontSize: 14,

@@ -17,7 +17,8 @@ const AddFood = () => {
     try {
       const foodsRef = ref(realtimeDB, 'consumedFoods');
       const newFoodRef = push(foodsRef);
-      await set(newFoodRef, food);
+      const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      await set(newFoodRef, { ...food, time: currentTime });
       console.log('Food added to database successfully');
     } catch (error) {
       console.error('Error adding food to database:', error);
