@@ -43,7 +43,12 @@ const ServingFood = () => {
     return (
       <View style={styles.macrosContainer}>
         <View style={styles.macroColumn}>
-          <MacroItem label="Grams" value={`${(parseFloat(serving.metric_serving_amount) * servingUnits).toFixed(2)}${serving.metric_serving_unit}`} />
+          {serving.metric_serving_amount && serving.metric_serving_unit && (
+            <MacroItem 
+              label="Grams" 
+              value={`${(parseFloat(serving.metric_serving_amount) * servingUnits).toFixed(2)}${serving.metric_serving_unit}`} 
+            />
+          )}
           {serving.calories && <MacroItem label="Calories" value={(parseFloat(serving.calories) * servingUnits).toFixed(0)} />}
           {serving.protein && <MacroItem label="Protein" value={`${(parseFloat(serving.protein) * servingUnits).toFixed(2)}g`} />}
         </View>
@@ -91,17 +96,27 @@ const ServingFood = () => {
     });
   };
 
+  const getCurrentDate = () => {
+    const now = new Date();
+    const offset = now.getTimezoneOffset();
+    const localDate = new Date(now.getTime() - (offset*60*1000));
+    return localDate.toISOString().split('T')[0];
+  };
+
   const handleAddFood = async () => {
     if (!selectedServing || !food) return;
     const serving = food.servings.serving.find(s => s.serving_description === selectedServing);
+    // const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+    const currentDate = getCurrentDate();
     const foodData = {
       name: food.food_name,
-      calories: serving.calories ? parseFloat(serving.calories) : 0,
-      protein: serving.protein ? parseFloat(serving.protein) : 0,
-      carbs: serving.carbohydrate ? parseFloat(serving.carbohydrate) : 0,
-      fat: serving.fat ? parseFloat(serving.fat) : 0,
-      iron: serving.iron ? parseFloat(serving.iron) : 0,
-      timestamp: Date.now()
+      calories: serving.calories ? parseFloat(serving.calories) * servingUnits : 0,
+      protein: serving.protein ? parseFloat(serving.protein) * servingUnits : 0,
+      carbs: serving.carbohydrate ? parseFloat(serving.carbohydrate) * servingUnits : 0,
+      fat: serving.fat ? parseFloat(serving.fat) * servingUnits : 0,
+      iron: serving.iron ? parseFloat(serving.iron) * servingUnits : 0,
+      timestamp: Date.now(),
+      date: currentDate
     };
 
     try {

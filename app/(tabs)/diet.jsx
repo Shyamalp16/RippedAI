@@ -32,19 +32,29 @@ const Diet = () => {
       }
     });
 
+    const getCurrentDate = () => {
+      const now = new Date();
+      const offset = now.getTimezoneOffset();
+      const localDate = new Date(now.getTime() - (offset*60*1000));
+      return localDate.toISOString().split('T')[0];
+    };
+
     const unsubscribeFoods = onValue(foodsRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        const foodsArray = Object.entries(data).map(([key, value]) => ({
-          id: key,
-          ...value,
-          timestamp: value.timestamp || Date.now() // Ensure timestamp exists
-        }));
+        const currentDate = getCurrentDate();
+        const foodsArray = Object.entries(data)
+          .map(([key, value]) => ({
+            id: key,
+            ...value,
+            timestamp: value.timestamp || Date.now()
+          }))
+          .filter(food => food.date === currentDate); // Filter foods for current date
         
         // Sort foods by timestamp in descending order (latest first)
         foodsArray.sort((a, b) => b.timestamp - a.timestamp);
         
-        // Calculate total macros from all consumed foods
+        // Calculate total macros from consumed foods of the current date
         const totalMacros = foodsArray.reduce((acc, food) => {
           acc.calories.current += Math.round(food.calories || 0);
           acc.protein.current += Math.round(food.protein || 0);

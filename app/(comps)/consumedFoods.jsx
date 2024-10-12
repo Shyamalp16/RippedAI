@@ -1,14 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, SafeAreaView } from 'react-native';
-import { ref, onValue } from 'firebase/database';
+import { ref, onValue, query, orderByChild, equalTo } from 'firebase/database';
 import { realtimeDB } from '../../lib/FirebaseConfig';
 
 const ConsumedFoods = () => {
   const [foodSections, setFoodSections] = useState([]);
+  const [currentDate, setCurrentDate] = useState('');
 
   useEffect(() => {
+    // Set the current date in YYYY-MM-DD format
+    const today = new Date().toISOString().split('T')[0];
+    setCurrentDate(today);
+
     const foodsRef = ref(realtimeDB, 'consumedFoods');
-    const unsubscribe = onValue(foodsRef, (snapshot) => {
+    const todayFoodsQuery = query(foodsRef, orderByChild('date'), equalTo(today));
+    
+    const unsubscribe = onValue(todayFoodsQuery, (snapshot) => {
       const data = snapshot.val();
       if (data) {
         const foodsArray = Object.keys(data).map(key => ({
@@ -17,6 +24,8 @@ const ConsumedFoods = () => {
         }));
         const groupedFoods = groupFoodsByMeal(foodsArray);
         setFoodSections(groupedFoods);
+      } else {
+        setFoodSections([]);
       }
     });
 
@@ -112,12 +121,16 @@ const ConsumedFoods = () => {
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Consumed Foods</Text>
-      <FlatList
-        data={foodSections}
-        renderItem={renderSection}
-        keyExtractor={(item) => item.key}
-        contentContainerStyle={styles.listContent}
-      />
+      {foodSections.length > 0 ? (
+        <FlatList
+          data={foodSections}
+          renderItem={renderSection}
+          keyExtractor={(item) => item.key}
+          contentContainerStyle={styles.listContent}
+        />
+      ) : (
+        <Text style={styles.noFoodsText}>No foods consumed today.</Text>
+      )}
     </SafeAreaView>
   );
 };
@@ -129,11 +142,12 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   title: {
+    paddingTop: 20,
+    paddingLeft: 80,
     fontSize: 24,
     fontWeight: '600',
     color: '#000000',
     marginBottom: 20,
-    paddingLeft: 10,
   },
   listContent: {
     paddingBottom: 20,
@@ -172,6 +186,12 @@ const styles = StyleSheet.create({
   macros: {
     fontSize: 14,
     color: '#000000',
+  },
+  noFoodsText: {
+    fontSize: 18,
+    color: '#666666',
+    textAlign: 'center',
+    marginTop: 20,
   },
 });
 
