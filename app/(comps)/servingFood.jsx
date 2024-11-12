@@ -5,10 +5,12 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { apiCall } from '../../lib/FastSecret';
 import { realtimeDB } from '../../lib/FirebaseConfig';
 import { ref, push, set } from 'firebase/database';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 const ServingFood = () => {
   const [selectedServing, setSelectedServing] = useState('');
   const [servingUnits, setServingUnits] = useState(1);
+  const [userID, setUserID] = useState(null)
   const [food, setFood] = useState(null);
   const params = useLocalSearchParams();
   const router = useRouter();
@@ -36,6 +38,15 @@ const ServingFood = () => {
   useEffect(() => {
     searchApi();
   }, []);
+
+  const ath = getAuth();
+  useEffect(() => {
+    onAuthStateChanged(ath, (user) => {
+      if(user){
+        setUserID(user.uid)
+      }
+    })
+  }, [])
 
   const renderMacros = () => {
     if (!selectedServing || !food) return null;
@@ -104,9 +115,8 @@ const ServingFood = () => {
   };
 
   const handleAddFood = async () => {
-    if (!selectedServing || !food) return;
+    if (!selectedServing || !food || !userID) return;
     const serving = food.servings.serving.find(s => s.serving_description === selectedServing);
-    // const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
     const currentDate = getCurrentDate();
     const foodData = {
       name: food.food_name,
@@ -116,7 +126,8 @@ const ServingFood = () => {
       fat: serving.fat ? parseFloat(serving.fat) * servingUnits : 0,
       iron: serving.iron ? parseFloat(serving.iron) * servingUnits : 0,
       timestamp: Date.now(),
-      date: currentDate
+      date: currentDate,
+      uID: userID
     };
 
     try {

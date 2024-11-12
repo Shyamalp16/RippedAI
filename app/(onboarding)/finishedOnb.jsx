@@ -9,9 +9,6 @@ import {setDoc, doc} from 'firebase/firestore'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { db } from '../../lib/FirebaseConfig' 
 
-
-
-
 const finishedOnb = () => {
   const {state, setState} = useContext(OnboardingContext)
   const [userID, setUserID] = useState(null)

@@ -22,11 +22,6 @@ export default function App() {
       setIsAuthorized(true);
       setExpiresIn(authData.expires_in);
       console.log('Authorization successful');
-      // const foodData = await apiCall(ep, 'foods.search', {
-      //   search_expression: 'chicken',
-      //   format: 'json',
-      // });
-      // console.log("Food data:", foodData);
     } catch (error) {
       console.error('Authorization failed:', error);
     }
