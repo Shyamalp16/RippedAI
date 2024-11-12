@@ -1,22 +1,91 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList } from 'react-native';
-import { router, useRouter } from 'expo-router'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { router, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ref, onValue, query, limitToLast, orderByChild } from 'firebase/database';
+import { ref, onValue } from 'firebase/database';
 import { realtimeDB } from '../../lib/FirebaseConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
+
+const MealSection = ({ title, meals }) => {
+  if (!meals || meals.length === 0) return null;
+  
+  return (
+    <View style={styles.mealSection}>
+      <Text style={styles.mealTypeTitle}>{title}</Text>
+      {meals.map((item, index) => {
+        const foodName = typeof item === 'object' ? item.name : item;
+        return (
+          <View key={`${title}-${index}`} style={styles.foodItem}>
+            <Text style={styles.foodName} numberOfLines={1} ellipsizeMode='tail'>
+              {foodName}
+            </Text>
+            <TouchableOpacity style={styles.checkbox}>
+              <Ionicons name="checkmark" size={24} color="#4CAF50" />
+            </TouchableOpacity>
+          </View>
+        );
+      })}
+    </View>
+  );
+};
 
 const Diet = () => {
   const router = useRouter();
-
+  const [mealPlan, setMealPlan] = useState({});
   const [macros, setMacros] = useState({
-    calories: { current: 0, target: 2000 },
-    protein: { current: 0, target: 150 },
-    carbs: { current: 0, target: 250 },
-    fat: { current: 0, target: 65 },
-    iron: { current: 0, target: 18 },
+    calories: { current: 0, target: 0 },
+    protein: { current: 0, target: 0 },
+    carbs: { current: 0, target: 0 },
+    fat: { current: 0, target: 0 },
+    iron: { current: 0, target: 0 },
   });
 
-  const [consumedFoods, setConsumedFoods] = useState([]);
+  const getCurrentDay = () => {
+    const now = new Date();
+    const options = { weekday: 'long' };
+    const day = now.toLocaleDateString('en-US', options);
+    return day.charAt(0).toUpperCase() + day.slice(1);
+  };
+
+  const getData = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem('weekly_meal_plan');
+      const data = jsonValue != null ? JSON.parse(jsonValue) : null;
+
+      const targetValue = await AsyncStorage.getItem('target_macros');
+      const targetData = targetValue != null ? JSON.parse(targetValue) : null;
+
+      if (data) {
+        const currentDay = getCurrentDay();
+        if (data[currentDay]) {
+          setMealPlan({
+            breakfast: data[currentDay].breakfast || [],
+            lunch: data[currentDay].lunch || [],
+            dinner: data[currentDay].dinner || [],
+            snacks: data[currentDay].snacks || []
+          });
+        }
+        
+        if (targetData.target_macros) {
+          const newMacros = {
+            calories: { ...macros.calories, target: parseInt(targetData.target_macros.calories) },
+            protein: { ...macros.protein, target: parseInt(targetData.target_macros.protein) },
+            carbs: { ...macros.carbs, target: parseInt(targetData.target_macros.carbs) },
+            fat: { ...macros.fat, target: parseInt(targetData.target_macros.fats) },
+            iron: { ...macros.iron, target: parseInt(targetData.target_macros.iron) }
+          };
+          setMacros(newMacros);
+        }
+      }
+    } catch (e) {
+      console.error("Error in getData:", e);
+    }
+  };
+
+  useEffect(() => {
+    getData();
+  }, []);
 
   useEffect(() => {
     const macrosRef = ref(realtimeDB, 'macros');
@@ -26,55 +95,25 @@ const Diet = () => {
       const data = snapshot.val();
       if (data) {
         setMacros(prevMacros => ({
-          ...prevMacros,
-          ...data,
+          calories: { current: data.calories?.current || 0, target: prevMacros.calories.target },
+          protein: { current: data.protein?.current || 0, target: prevMacros.protein.target },
+          carbs: { current: data.carbs?.current || 0, target: prevMacros.carbs.target },
+          fat: { current: data.fat?.current || 0, target: prevMacros.fat.target },
+          iron: { current: data.iron?.current || 0, target: prevMacros.iron.target },
         }));
       }
     });
 
-    const getCurrentDate = () => {
-      const now = new Date();
-      const offset = now.getTimezoneOffset();
-      const localDate = new Date(now.getTime() - (offset*60*1000));
-      return localDate.toISOString().split('T')[0];
-    };
+    const currentDay = getCurrentDay();
 
     const unsubscribeFoods = onValue(foodsRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        const currentDate = getCurrentDate();
-        const foodsArray = Object.entries(data)
-          .map(([key, value]) => ({
-            id: key,
-            ...value,
-            timestamp: value.timestamp || Date.now()
-          }))
-          .filter(food => food.date === currentDate); // Filter foods for current date
-        
-        // Sort foods by timestamp in descending order (latest first)
-        foodsArray.sort((a, b) => b.timestamp - a.timestamp);
-        
-        // Calculate total macros from consumed foods of the current date
-        const totalMacros = foodsArray.reduce((acc, food) => {
-          acc.calories.current += Math.round(food.calories || 0);
-          acc.protein.current += Math.round(food.protein || 0);
-          acc.carbs.current += Math.round(food.carbs || 0);
-          acc.fat.current += Math.round(food.fat || 0);
-          acc.iron.current += Math.round(food.iron || 0);
-          return acc;
-        }, {
-          calories: { current: 0, target: macros.calories.target },
-          protein: { current: 0, target: macros.protein.target },
-          carbs: { current: 0, target: macros.carbs.target },
-          fat: { current: 0, target: macros.fat.target },
-          iron: { current: 0, target: macros.iron.target },
-        });
-
-        setMacros(totalMacros);
-        
-        // Take only the first 3 items (most recent) for display
-        const recentFoods = foodsArray.slice(0, 3);
-        setConsumedFoods(recentFoods);
+        if (data.weekly_meal_plan && data.weekly_meal_plan[currentDay]) {
+          setMealPlan(data.weekly_meal_plan[currentDay]);
+        } else {
+          getData();
+        }
       }
     });
 
@@ -86,18 +125,11 @@ const Diet = () => {
 
   const renderMacroBar = (macro, value) => (
     <View style={styles.macroBar} key={macro}>
-      <Text style={styles.macroText}>{macro}</Text>
+      <Text style={styles.macroText}>{macro.charAt(0).toUpperCase() + macro.slice(1)}</Text>
       <View style={styles.progressContainer}>
         <View style={[styles.progressBar, { width: `${Math.min(100, Math.round((value?.current || 0) / (value?.target || 1) * 100))}%` }]} />
       </View>
       <Text style={styles.macroText}>{`${Math.round(value?.current) || 0}/${value?.target || 0}`}</Text>
-    </View>
-  );
-
-  const renderFoodItem = ({ item }) => (
-    <View style={styles.foodItem}>
-      <Text style={styles.foodName} numberOfLines={1} ellipsizeMode='tail'>{item.name}</Text>
-      <Text style={styles.foodCalories}>{Math.round(item.calories)} cal</Text>
     </View>
   );
 
@@ -120,19 +152,13 @@ const Diet = () => {
           {Object.entries(macros).filter(([macro]) => macro !== 'calories').map(([macro, value]) => renderMacroBar(macro, value))}
         </View>
 
-        <TouchableOpacity 
-          style={styles.consumedFoodsContainer}
-          onPress={() => router.push({pathname: "/consumedFoods"})}
-        >
-          <Text style={styles.sectionTitle}>Recently Consumed Foods</Text>
-          <FlatList
-            data={consumedFoods}
-            renderItem={renderFoodItem}
-            keyExtractor={item => `${item.id}-${item.timestamp}`}
-            style={styles.foodList}
-          />
-          <Text style={styles.viewAllText}>View all...</Text>
-        </TouchableOpacity>
+        <View style={styles.mealPlanContainer}>
+          <Text style={styles.sectionTitle}>Today's Meal Plan</Text>
+          <MealSection title="Breakfast" meals={mealPlan.breakfast} />
+          <MealSection title="Lunch" meals={mealPlan.lunch} />
+          <MealSection title="Dinner" meals={mealPlan.dinner} />
+          <MealSection title="Snacks" meals={mealPlan.snacks} />
+        </View>
 
         <TouchableOpacity
           style={styles.button}
@@ -149,35 +175,40 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+    paddingLeft: 16,
   },
   scrollContent: {
     flexGrow: 1,
-    padding: 20,
+    padding: 16,
+    paddingLeft: 8,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#000000',
-    marginBottom: 20,
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    marginBottom: 24,
+    textAlign: 'center',
   },
   calorieCircle: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 32,
   },
   circularProgress: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    backgroundColor: '#F0F0F0',
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    borderWidth: 8,
+    borderColor: '#F0F0F0',
     overflow: 'hidden',
     position: 'relative',
+    backgroundColor: '#FFFFFF',
   },
   circularFill: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#000000',
+    backgroundColor: '#4CAF50', // Green color for progress
   },
   circularContent: {
     position: 'absolute',
@@ -189,95 +220,100 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   calorieText: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#1A1A1A',
     textAlign: 'center',
-    zIndex: 10,
   },
   calorieValue: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    textAlign: 'center',
+    fontSize: 20,
+    color: '#4CAF50',
+    fontWeight: '600',
+    marginTop: 4,
   },
   macrosContainer: {
-    backgroundColor: '#F0F0F0',
-    borderRadius: 8,
-    padding: 15,
-    marginBottom: 20,
-    elevation: 2,
+    marginBottom: 32,
   },
   macroBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 16,
   },
   macroText: {
     flex: 1,
     fontSize: 16,
-    color: '#000000',
+    fontWeight: '500',
+    color: '#1A1A1A',
   },
   progressContainer: {
     flex: 2,
-    height: 10,
-    backgroundColor: '#DDDDDD',
-    borderRadius: 5,
-    marginHorizontal: 10,
+    height: 12,
+    backgroundColor: '#F0F0F0',
+    borderRadius: 6,
+    marginHorizontal: 12,
   },
   progressBar: {
     height: '100%',
-    backgroundColor: '#000000',
-    borderRadius: 5,
+    backgroundColor: '#4CAF50',
+    borderRadius: 6,
   },
-  consumedFoodsContainer: {
-    backgroundColor: '#F0F0F0',
-    borderRadius: 8,
-    padding: 15,
-    marginBottom: 20,
-    elevation: 2,
+  mealPlanContainer: {
+    marginBottom: 24,
+  },
+  mealSection: {
+    marginBottom: 24,
+  },
+  mealTypeTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1A1A1A',
+    marginBottom: 16,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000000',
-    marginBottom: 10,
-  },
-  foodList: {
-    maxHeight: 200,
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    marginBottom: 20,
   },
   foodItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#DDDDDD',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 12,
+    marginBottom: 12,
+    backgroundColor: '#FFFFFF',
   },
   foodName: {
     fontSize: 16,
-    color: '#000000',
+    color: '#1A1A1A',
     flex: 1,
-    marginRight: 10,
+    marginRight: 12,
+    fontWeight: '500',
   },
-  foodCalories: {
-    fontSize: 14,
-    color: '#666666',
-  },
-  viewAllText: {
-    fontSize: 14,
-    color: '#000000',
-    textAlign: 'center',
-    marginTop: 10,
+  checkbox: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   button: {
-    backgroundColor: '#000000',
-    padding: 15,
-    borderRadius: 8,
+    backgroundColor: '#4CAF50',
+    padding: 16,
+    borderRadius: 12,
     alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 24,
   },
   buttonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
   },
 });

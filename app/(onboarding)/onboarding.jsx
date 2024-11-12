@@ -5,6 +5,7 @@ import FormField from '../../components/FormField'
 import CustomButton from '../../components/CustomButton'
 import { router } from 'expo-router'
 import { OnboardingContext } from '../../context/OnboardingContext'
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Onboarding = () => {  
     const {state, setState} = useContext(OnboardingContext)

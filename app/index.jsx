@@ -81,6 +81,7 @@ export default function App() {
     if(!onboarding){
       // If it is not loading, it is already logged in AND setOnboarding is false we show home (Meaning usere logged in and finished onboarding)
       return <Redirect href="/home" />
+      // return <Redirect href="/onboarding" />
     }else{
       // if it is not loading, already logged in AND showOnboarding is true we show onboarding (Meaning user just logged in)
       return <Redirect href="/onboarding" />
