@@ -153,19 +153,20 @@ const Diet = () => {
         </View>
 
         <View style={styles.mealPlanContainer}>
-          <Text style={styles.sectionTitle}>Today's Meal Plan</Text>
+          <View style={styles.mealPlanHeader}>
+            <Text style={styles.sectionTitle}>Today's Meal Plan</Text>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => router.push('/addFood')}
+            >
+              <Ionicons name="add-circle" size={38} color="#4CAF50" />
+            </TouchableOpacity>
+          </View>
           <MealSection title="Breakfast" meals={mealPlan.breakfast} />
           <MealSection title="Lunch" meals={mealPlan.lunch} />
           <MealSection title="Dinner" meals={mealPlan.dinner} />
           <MealSection title="Snacks" meals={mealPlan.snacks} />
         </View>
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.push('/addFood')}
-        >
-          <Text style={styles.buttonText}>Add Food</Text>
-        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -303,18 +304,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  button: {
-    backgroundColor: '#4CAF50',
-    padding: 16,
-    borderRadius: 12,
+  mealPlanHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 24,
+    marginBottom: 20,
   },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '600',
+  addButton: {
+    padding: 8,
   },
 });
 
