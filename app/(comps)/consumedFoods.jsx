@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, SafeAreaView } from 'react-native';
-import { ref, onValue, query, orderByChild, equalTo } from 'firebase/database';
+import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity } from 'react-native';
+import { ref, onValue, query, orderByChild, equalTo, remove } from 'firebase/database';
 import { realtimeDB } from '../../lib/FirebaseConfig';
 
 const ConsumedFoods = () => {
@@ -95,11 +95,30 @@ const ConsumedFoods = () => {
       }));
   };
 
+  const handleDeleteFood = async (foodId) => {
+    try {
+      const foodRef = ref(realtimeDB, `consumedFoods/${foodId}`);
+      await remove(foodRef);
+      // The UI will update automatically through the onValue listener
+    } catch (error) {
+      console.error('Error deleting food:', error);
+      // You might want to add error handling UI feedback here
+    }
+  };
+
   const renderFoodItem = ({ item }) => (
     <View style={styles.foodCard}>
       <View style={styles.foodHeader}>
         <Text style={styles.foodName}>{item.name}</Text>
-        <Text style={styles.foodTime}>{item.time}</Text>
+        <View style={styles.headerRight}>
+          <Text style={styles.foodTime}>{item.time}</Text>
+          <TouchableOpacity 
+            style={styles.deleteButton}
+            onPress={() => handleDeleteFood(item.id)}
+          >
+            <Text style={styles.deleteButtonText}>×</Text>
+          </TouchableOpacity>
+        </View>
       </View>
       <Text style={styles.macros}>
         Calories: {item.calories} | Protein: {item.protein}g | Carbs: {item.carbs}g | Fat: {item.fat}g
@@ -192,6 +211,25 @@ const styles = StyleSheet.create({
     color: '#666666',
     textAlign: 'center',
     marginTop: 20,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  deleteButton: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#ff4444',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+    lineHeight: 22,
   },
 });
 

@@ -8,22 +8,70 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 
 const MealSection = ({ title, meals }) => {
+  const [consumedFoods, setConsumedFoods] = useState({});
+  
+  useEffect(() => {
+    const currentDate = new Date().toISOString().split('T')[0];
+    const foodsRef = ref(realtimeDB, 'consumedFoods');
+    
+    const unsubscribe = onValue(foodsRef, (snapshot) => {
+      const data = snapshot.val();
+      
+      if (data) {
+        const consumed = {};
+        Object.values(data).forEach(food => {
+          if (food.date === currentDate) {
+            consumed[food.name.toLowerCase()] = true;
+          }
+        });
+        setConsumedFoods(consumed);
+      } else {
+        setConsumedFoods({});
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const getCurrentDay = () => {
+    const now = new Date();
+    const options = { weekday: 'long' };
+    const day = now.toLocaleDateString('en-US', options);
+    return day.charAt(0).toUpperCase() + day.slice(1);
+  };
+
   if (!meals || meals.length === 0) return null;
+  
+  const handleFoodItemPress = async (foodName) => {
+    router.push({
+      pathname: '/servingFood',
+      params: { 
+        foodName: foodName,
+        day: getCurrentDay()
+      }
+    });
+  };
   
   return (
     <View style={styles.mealSection}>
       <Text style={styles.mealTypeTitle}>{title}</Text>
       {meals.map((item, index) => {
         const foodName = typeof item === 'object' ? item.name : item;
+        const isConsumed = Boolean(consumedFoods[foodName.toLowerCase()]);
+        
         return (
-          <View key={`${title}-${index}`} style={styles.foodItem}>
+          <TouchableOpacity 
+            key={`${title}-${index}`} 
+            style={styles.foodItem}
+            onPress={() => handleFoodItemPress(foodName)}
+          >
             <Text style={styles.foodName} numberOfLines={1} ellipsizeMode='tail'>
               {foodName}
             </Text>
-            <TouchableOpacity style={styles.checkbox}>
-              <Ionicons name="checkmark" size={24} color="#4CAF50" />
-            </TouchableOpacity>
-          </View>
+            <View style={styles.checkbox}>
+              {isConsumed && <Ionicons name="checkmark" size={24} color="#4CAF50" />}
+            </View>
+          </TouchableOpacity>
         );
       })}
     </View>
@@ -33,12 +81,19 @@ const MealSection = ({ title, meals }) => {
 const Diet = () => {
   const router = useRouter();
   const [mealPlan, setMealPlan] = useState({});
-  const [macros, setMacros] = useState({
-    calories: { current: 0, target: 0 },
-    protein: { current: 0, target: 0 },
-    carbs: { current: 0, target: 0 },
-    fat: { current: 0, target: 0 },
-    iron: { current: 0, target: 0 },
+  const [targetMacros, setTargetMacros] = useState({
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0,
+    iron: 0,
+  });
+  const [currentMacros, setCurrentMacros] = useState({
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0,
+    iron: 0,
   });
 
   const getCurrentDay = () => {
@@ -67,15 +122,14 @@ const Diet = () => {
           });
         }
         
-        if (targetData.target_macros) {
-          const newMacros = {
-            calories: { ...macros.calories, target: parseInt(targetData.target_macros.calories) },
-            protein: { ...macros.protein, target: parseInt(targetData.target_macros.protein) },
-            carbs: { ...macros.carbs, target: parseInt(targetData.target_macros.carbs) },
-            fat: { ...macros.fat, target: parseInt(targetData.target_macros.fats) },
-            iron: { ...macros.iron, target: parseInt(targetData.target_macros.iron) }
-          };
-          setMacros(newMacros);
+        if (targetData?.target_macros) {
+          setTargetMacros({
+            calories: parseInt(targetData.target_macros.calories) || 0,
+            protein: parseInt(targetData.target_macros.protein) || 0,
+            carbs: parseInt(targetData.target_macros.carbs) || 0,
+            fat: parseInt(targetData.target_macros.fats) || 0,
+            iron: parseInt(targetData.target_macros.iron) || 0
+          });
         }
       }
     } catch (e) {
@@ -88,50 +142,51 @@ const Diet = () => {
   }, []);
 
   useEffect(() => {
-    const macrosRef = ref(realtimeDB, 'macros');
     const foodsRef = ref(realtimeDB, 'consumedFoods');
-
-    const unsubscribeMacros = onValue(macrosRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        setMacros(prevMacros => ({
-          calories: { current: data.calories?.current || 0, target: prevMacros.calories.target },
-          protein: { current: data.protein?.current || 0, target: prevMacros.protein.target },
-          carbs: { current: data.carbs?.current || 0, target: prevMacros.carbs.target },
-          fat: { current: data.fat?.current || 0, target: prevMacros.fat.target },
-          iron: { current: data.iron?.current || 0, target: prevMacros.iron.target },
-        }));
-      }
-    });
-
-    const currentDay = getCurrentDay();
+    const currentDate = new Date().toISOString().split('T')[0];
 
     const unsubscribeFoods = onValue(foodsRef, (snapshot) => {
       const data = snapshot.val();
+      
       if (data) {
-        if (data.weekly_meal_plan && data.weekly_meal_plan[currentDay]) {
-          setMealPlan(data.weekly_meal_plan[currentDay]);
-        } else {
-          getData();
-        }
+        let dailyTotals = {
+          calories: 0,
+          protein: 0,
+          carbs: 0,
+          fat: 0,
+          iron: 0
+        };
+
+        Object.values(data).forEach(food => {
+          if (food.date === currentDate) {
+            dailyTotals.calories += food.calories || 0;
+            dailyTotals.protein += food.protein || 0;
+            dailyTotals.carbs += food.carbs || 0;
+            dailyTotals.fat += food.fat || 0;
+            dailyTotals.iron += food.iron || 0;
+          }
+        });
+
+        setCurrentMacros(dailyTotals);
       }
     });
 
-    return () => {
-      unsubscribeMacros();
-      unsubscribeFoods();
-    };
+    return () => unsubscribeFoods();
   }, []);
 
-  const renderMacroBar = (macro, value) => (
-    <View style={styles.macroBar} key={macro}>
-      <Text style={styles.macroText}>{macro.charAt(0).toUpperCase() + macro.slice(1)}</Text>
-      <View style={styles.progressContainer}>
-        <View style={[styles.progressBar, { width: `${Math.min(100, Math.round((value?.current || 0) / (value?.target || 1) * 100))}%` }]} />
+  const renderMacroBar = (macro) => {
+    const current = currentMacros[macro];
+    const target = targetMacros[macro];
+    return (
+      <View style={styles.macroBar} key={macro}>
+        <Text style={styles.macroText}>{macro.charAt(0).toUpperCase() + macro.slice(1)}</Text>
+        <View style={styles.progressContainer}>
+          <View style={[styles.progressBar, { width: `${Math.min(100, Math.round((current || 0) / (target || 1) * 100))}%` }]} />
+        </View>
+        <Text style={styles.macroText}>{`${Math.round(current) || 0}/${target || 0}`}</Text>
       </View>
-      <Text style={styles.macroText}>{`${Math.round(value?.current) || 0}/${value?.target || 0}`}</Text>
-    </View>
-  );
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -140,27 +195,35 @@ const Diet = () => {
         
         <View style={styles.calorieCircle}>
           <View style={styles.circularProgress}>
-            <View style={[styles.circularFill, { height: `${Math.min(100, Math.round((macros.calories?.current || 0) / (macros.calories?.target || 1) * 100))}%` }]} />
+            <View style={[styles.circularFill, { height: `${Math.min(100, Math.round((currentMacros.calories || 0) / (targetMacros.calories || 1) * 100))}%` }]} />
             <View style={styles.circularContent}>
               <Text style={styles.calorieText}>Calories</Text>
-              <Text style={styles.calorieValue}>{`${Math.round(macros.calories?.current) || 0}/${macros.calories?.target || 0}`}</Text>
+              <Text style={styles.calorieValue}>{`${Math.round(currentMacros.calories) || 0}/${targetMacros.calories || 0}`}</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.macrosContainer}>
-          {Object.entries(macros).filter(([macro]) => macro !== 'calories').map(([macro, value]) => renderMacroBar(macro, value))}
+          {Object.keys(targetMacros).map(renderMacroBar)}
         </View>
 
         <View style={styles.mealPlanContainer}>
           <View style={styles.mealPlanHeader}>
             <Text style={styles.sectionTitle}>Today's Meal Plan</Text>
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => router.push('/addFood')}
-            >
-              <Ionicons name="add-circle" size={38} color="#4CAF50" />
-            </TouchableOpacity>
+            <View style={styles.headerButtons}>
+              <TouchableOpacity
+                style={styles.iconButton}
+                onPress={() => router.push('/consumedFoods')}
+              >
+                <Ionicons name="bar-chart" size={28} color="#1A1A1A" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.iconButton}
+                onPress={() => router.push('/addFood')}
+              >
+                <Ionicons name="add-circle" size={32} color="#1A1A1A" />
+              </TouchableOpacity>
+            </View>
           </View>
           <MealSection title="Breakfast" meals={mealPlan.breakfast} />
           <MealSection title="Lunch" meals={mealPlan.lunch} />
@@ -228,7 +291,7 @@ const styles = StyleSheet.create({
   },
   calorieValue: {
     fontSize: 20,
-    color: '#4CAF50',
+    color: '#1A1A1A',
     fontWeight: '600',
     marginTop: 4,
   },
@@ -277,7 +340,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: '#1A1A1A',
-    marginBottom: 20,
   },
   foodItem: {
     flexDirection: 'row',
@@ -310,8 +372,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  addButton: {
-    padding: 8,
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  iconButton: {
+    padding: 4,
   },
 });
 

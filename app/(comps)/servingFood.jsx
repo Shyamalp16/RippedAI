@@ -115,11 +115,22 @@ const ServingFood = () => {
   };
 
   const handleAddFood = async () => {
-    if (!selectedServing || !food || !userID) return;
+    
+    if (!selectedServing || !food || !userID) {
+      console.log('Missing required data:', {
+        selectedServing: !!selectedServing,
+        food: !!food,
+        userID: !!userID
+      });
+      return;
+    }
+
     const serving = food.servings.serving.find(s => s.serving_description === selectedServing);
+    
     const currentDate = getCurrentDate();
+    
     const foodData = {
-      name: food.food_name,
+      name: params.foodName,
       calories: serving.calories ? parseFloat(serving.calories) * servingUnits : 0,
       protein: serving.protein ? parseFloat(serving.protein) * servingUnits : 0,
       carbs: serving.carbohydrate ? parseFloat(serving.carbohydrate) * servingUnits : 0,
@@ -127,7 +138,9 @@ const ServingFood = () => {
       iron: serving.iron ? parseFloat(serving.iron) * servingUnits : 0,
       timestamp: Date.now(),
       date: currentDate,
-      uID: userID
+      uID: userID,
+      servingUnits: servingUnits,
+      servingDescription: selectedServing
     };
 
     try {
@@ -160,8 +173,8 @@ const ServingFood = () => {
           <Ionicons name="image-outline" size={100} color="#CCCCCC" />
         </View>
       )}
-      <Text style={styles.foodName}>{food.food_name}</Text>
-      <Text style={styles.foodType}>{food.food_type}</Text>
+      <Text style={styles.foodName}>{params.foodName}</Text>
+      <Text style={styles.foodType}>{food?.food_type}</Text>
       
       <Text style={styles.servingLabel}>Select a serving:</Text>
       <FlatList
