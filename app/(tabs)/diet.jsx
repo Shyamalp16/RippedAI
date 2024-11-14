@@ -12,18 +12,25 @@ const MealSection = ({ title, meals }) => {
   
   useEffect(() => {
     const currentDate = new Date().toISOString().split('T')[0];
+    console.log('MealSection - Checking for date:', currentDate);
+    
     const foodsRef = ref(realtimeDB, 'consumedFoods');
+    
+    console.log('MealSection - Checking for date:', currentDate);
     
     const unsubscribe = onValue(foodsRef, (snapshot) => {
       const data = snapshot.val();
+      console.log('MealSection - Received data:', data);
       
       if (data) {
         const consumed = {};
-        Object.values(data).forEach(food => {
+        Object.entries(data).forEach(([key, food]) => {
+          console.log('MealSection - Checking food:', food);
           if (food.date === currentDate) {
-            consumed[food.name.toLowerCase()] = true;
+            consumed[`${food.name.toLowerCase()}-${key}`] = true;
           }
         });
+        console.log('MealSection - Set consumed foods:', consumed);
         setConsumedFoods(consumed);
       } else {
         setConsumedFoods({});
@@ -144,9 +151,12 @@ const Diet = () => {
   useEffect(() => {
     const foodsRef = ref(realtimeDB, 'consumedFoods');
     const currentDate = new Date().toISOString().split('T')[0];
+    
+    console.log('Diet - Checking for date:', currentDate);
 
     const unsubscribeFoods = onValue(foodsRef, (snapshot) => {
       const data = snapshot.val();
+      console.log('Diet - Received data:', data);
       
       if (data) {
         let dailyTotals = {
@@ -159,15 +169,23 @@ const Diet = () => {
 
         Object.values(data).forEach(food => {
           if (food.date === currentDate) {
-            dailyTotals.calories += food.calories || 0;
-            dailyTotals.protein += food.protein || 0;
-            dailyTotals.carbs += food.carbs || 0;
-            dailyTotals.fat += food.fat || 0;
-            dailyTotals.iron += food.iron || 0;
+            dailyTotals.calories += Number(food.calories) || 0;
+            dailyTotals.protein += Number(food.protein) || 0;
+            dailyTotals.carbs += Number(food.carbs) || 0;
+            dailyTotals.fat += Number(food.fat) || 0;
+            dailyTotals.iron += Number(food.iron) || 0;
           }
         });
 
         setCurrentMacros(dailyTotals);
+      } else {
+        setCurrentMacros({
+          calories: 0,
+          protein: 0,
+          carbs: 0,
+          fat: 0,
+          iron: 0
+        });
       }
     });
 
