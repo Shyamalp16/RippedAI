@@ -11,21 +11,22 @@ const MealSection = ({ title, meals }) => {
   const [consumedFoods, setConsumedFoods] = useState({});
   
   useEffect(() => {
-    const currentDate = new Date().toISOString().split('T')[0];
+    const today = new Date();
+    const options = { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' };
+    const formattedDate = today.toLocaleDateString('en-US', options).replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$1-$2');
+    const currentDate = formattedDate
+
     console.log('MealSection - Checking for date:', currentDate);
     
     const foodsRef = ref(realtimeDB, 'consumedFoods');
     
-    console.log('MealSection - Checking for date:', currentDate);
-    
     const unsubscribe = onValue(foodsRef, (snapshot) => {
       const data = snapshot.val();
-      console.log('MealSection - Received data:', data);
       
       if (data) {
         const consumed = {};
         Object.entries(data).forEach(([key, food]) => {
-          console.log('MealSection - Checking food:', food);
+          // console.log('MealSection - Checking food:', food);
           if (food.date === currentDate) {
             consumed[`${food.name.toLowerCase()}-${key}`] = true;
           }
@@ -64,7 +65,7 @@ const MealSection = ({ title, meals }) => {
       <Text style={styles.mealTypeTitle}>{title}</Text>
       {meals.map((item, index) => {
         const foodName = typeof item === 'object' ? item.name : item;
-        const isConsumed = Boolean(consumedFoods[foodName.toLowerCase()]);
+        const isConsumed = Object.keys(consumedFoods).some(key => key.split('--')[0] === foodName.toLowerCase());
         
         return (
           <TouchableOpacity 
@@ -150,13 +151,13 @@ const Diet = () => {
 
   useEffect(() => {
     const foodsRef = ref(realtimeDB, 'consumedFoods');
-    const currentDate = new Date().toISOString().split('T')[0];
-    
-    console.log('Diet - Checking for date:', currentDate);
+    const today = new Date();
+    const options = { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' };
+    const formattedDate = today.toLocaleDateString('en-US', options).replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$1-$2');
+    const currentDate = formattedDate
 
     const unsubscribeFoods = onValue(foodsRef, (snapshot) => {
       const data = snapshot.val();
-      console.log('Diet - Received data:', data);
       
       if (data) {
         let dailyTotals = {
