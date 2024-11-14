@@ -12,19 +12,15 @@ const ConsumedFoods = () => {
     const options = { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' };
     const formattedDate = today.toLocaleDateString('en-US', options).replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$1-$2');
     setCurrentDate(formattedDate);
-    
-    console.log('ConsumedFoods - Checking for date:', formattedDate);
 
     const foodsRef = ref(realtimeDB, 'consumedFoods');
     
     const unsubscribe = onValue(foodsRef, (snapshot) => {
       const data = snapshot.val();
-      console.log('ConsumedFoods - Received data:', data);
       
       if (data) {
         const foodsArray = Object.entries(data)
           .filter(([_, food]) => {
-            console.log('ConsumedFoods - Checking food date:', food.date, 'against today:', formattedDate);
             return food.date === formattedDate;
           })
           .map(([key, food]) => ({
@@ -32,9 +28,7 @@ const ConsumedFoods = () => {
             ...food
           }));
         
-        console.log('ConsumedFoods - Filtered foods:', foodsArray);
         const groupedFoods = groupFoodsByMeal(foodsArray);
-        console.log('ConsumedFoods - Grouped foods:', groupedFoods);
         setFoodSections(groupedFoods);
       } else {
         setFoodSections([]);
@@ -45,8 +39,6 @@ const ConsumedFoods = () => {
   }, []);
 
   const groupFoodsByMeal = (foods) => {
-    console.log('groupFoodsByMeal - Processing foods:', foods);
-    
     const meals = {
       Breakfast: [],
       Lunch: [],

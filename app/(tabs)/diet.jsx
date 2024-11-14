@@ -15,8 +15,6 @@ const MealSection = ({ title, meals }) => {
     const options = { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' };
     const formattedDate = today.toLocaleDateString('en-US', options).replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$1-$2');
     const currentDate = formattedDate
-
-    console.log('MealSection - Checking for date:', currentDate);
     
     const foodsRef = ref(realtimeDB, 'consumedFoods');
     
@@ -26,12 +24,10 @@ const MealSection = ({ title, meals }) => {
       if (data) {
         const consumed = {};
         Object.entries(data).forEach(([key, food]) => {
-          // console.log('MealSection - Checking food:', food);
           if (food.date === currentDate) {
             consumed[`${food.name.toLowerCase()}-${key}`] = true;
           }
         });
-        console.log('MealSection - Set consumed foods:', consumed);
         setConsumedFoods(consumed);
       } else {
         setConsumedFoods({});
