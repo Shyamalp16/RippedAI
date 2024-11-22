@@ -10,12 +10,12 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { db } from '../../lib/FirebaseConfig' 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { SECRET_KEY } from '@env';
+import { EXPO_SECRET_KEY } from '@env';
 import OpenAI from "openai"
 import { zodResponseFormat } from "openai/helpers/zod";
 import { z } from "zod";
 
-const openai = new OpenAI({apiKey: SECRET_KEY});
+const openai = new OpenAI({apiKey: process.env.SECRET_KEY});
 // openai.apiKey = SECRET_KEY
 
 const finishedOnb = () => {

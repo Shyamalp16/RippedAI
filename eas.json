@@ -1,0 +1,30 @@
+{
+  "cli": {
+    "version": ">= 13.3.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "ENVFILE": ".env"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "ENVFILE": ".env"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "ENVFILE": ".env"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

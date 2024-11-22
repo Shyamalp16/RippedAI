@@ -27,45 +27,21 @@ export default function App() {
     }
   }
 
-  const checkApi = async () => {
-    try {
-      const foodData = await apiCall('GET', '/server.api', {
-        method: 'foods.search.v3',
-        search_expression: 'chicken',
-        max_results: 1,
-        include_food_images: true,
-        flag_default_serving: true,
-        format: 'json',
-      });
-      console.log(JSON.stringify(foodData, null, 2));
-      if (foodData.foods_search && foodData.foods_search.results && foodData.foods_search.results.food) {
-        console.log("Complete Food data:");
-        foodData.foods_search.results.food.forEach((foodItem, index) => {
-          console.log(`Food Item ${index + 1}:`);
-          console.log(JSON.stringify(foodItem, null, 2));
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching food data:', error);
-    }
-  }
+  // useEffect(() => {
+  //   if (!isAuthorized) {
+  //     checkAuth();
+  //   }
+  //   checkIfAlreadyOnboarded();
+  // }, [])
 
-  useEffect(() => {
-    if (!isAuthorized) {
-      checkAuth();
-      // checkApi();
-    }
-    checkIfAlreadyOnboarded();
-  }, [])
-
-  useEffect(() => {
-    if (expiresIn) {
-      const timer = setTimeout(() => {
-        checkAuth();
-      }, (expiresIn - 300) * 1000); // Refresh 5 minutes before expiration
-      return () => clearTimeout(timer);
-    }
-  }, [expiresIn]);
+  // useEffect(() => {
+  //   if (expiresIn) {
+  //     const timer = setTimeout(() => {
+  //       checkAuth();
+  //     }, (expiresIn - 300) * 1000); // Refresh 5 minutes before expiration
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [expiresIn]);
 
   const checkIfAlreadyOnboarded = async () => {
     let onboarded = await getItem('onboarded');
@@ -77,16 +53,16 @@ export default function App() {
     }
   }
 
-  if (!isLoading && isLoggedIn){
-    if(!onboarding){
-      // If it is not loading, it is already logged in AND setOnboarding is false we show home (Meaning usere logged in and finished onboarding)
-      return <Redirect href="/home" />
-      // return <Redirect href="/onboarding" />
-    }else{
-      // if it is not loading, already logged in AND showOnboarding is true we show onboarding (Meaning user just logged in)
-      return <Redirect href="/onboarding" />
-    }
-  }
+  // if (!isLoading && isLoggedIn){
+  //   if(!onboarding){
+  //     // If it is not loading, it is already logged in AND setOnboarding is false we show home (Meaning usere logged in and finished onboarding)
+  //     return <Redirect href="/home" />
+  //     // return <Redirect href="/onboarding" />
+  //   }else{
+  //     // if it is not loading, already logged in AND showOnboarding is true we show onboarding (Meaning user just logged in)
+  //     return <Redirect href="/onboarding" />
+  //   }
+  // }
 
   return (
     <View className="flex-1 items-center justify-center bg-[#ffffff]">
